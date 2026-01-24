@@ -18,8 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 予約関連
+    // 予約の入り口（メニュー・スタッフ選択）
     Route::get('/reserve', [ReservationController::class, 'index'])->name('reservations.index');
+    // 日時選択画面
+    Route::get('/reserve/datetime', [ReservationController::class, 'showDateTime'])->name('reservations.datetime');
 });
 
 require __DIR__ . '/auth.php';

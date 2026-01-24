@@ -10,6 +10,16 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     {{ __("You're logged in!") }}
+
+                    <div class="p-6 text-gray-900">
+                        {{ __("You're logged in!") }}
+
+                        <div class="mt-6">
+                            <a href="{{ route('reservations.index') }}" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded">
+                                新規予約はこちら
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

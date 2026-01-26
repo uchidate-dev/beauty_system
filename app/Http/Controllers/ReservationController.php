@@ -25,27 +25,33 @@ class ReservationController extends Controller
         $selectedMenuIds = $request->input('menu_ids');
         $selectedStaffId = $request->input('staff_id');
 
+        // メニューが選ばれていない場合は前の画面に戻す
+        if (empty($selectedMenuIds)) {
+            return back()->with('error', 'メニューを1つ以上選択してください。');
+        }
+
         // IDから実際のデータを取得
         $menus = Menu::whereIn('id', $selectedMenuIds)->get();
-        $staff = Staff::find($selectedStaffId);
+        // 指名なし(0)の場合はダミーのスタッフデータを作る
+        if ($selectedStaffId == 0) {
+            $staff = new \App\Models\Staff();
+            $staff->id = 0;
+            $staff->name = '指名なし';
+        } else {
+            $staff = Staff::find($selectedStaffId);
+        }
 
-        // 30分刻みの時間枠を作成
-        return view('reservations.datetime', compact('menus', 'staff'));
+        // 30分刻みの時間はそのままでOK
+        $times = [];
+        $start = new \DateTime('10:00');
+        $end = new \DateTime('19:00');
+        $interval = new \DateInterval('PT30M');
+
+        while ($start <= $end) {
+            $times[] = $start->format('H:i');
+            $start->add($interval);
+        }
+
+        return view('reservations.datetime', compact('menus', 'staff', 'times'));
     }
-
-    public function store(Request $request)
-    {
-        // 予約を保存（メニューが複数の場合も考え代表で1つ保存）
-        $reservation = new Reservation();
-        $reservation->user_id = auth()->id();
-        $reservation->staff_id = $request->staff_id;
-        $reservation->menu_id = $request->menu_ids[0]; // 最初のメニュー
-        $reservation->reservation_date = $request->reservation_date;
-        $reservation->reservation_time = $request->reservation_time;
-        $reservation->status = 'pending';
-        $reservation->save();
-
-        return redirect()->route('dashboard')->with('success', '予約が完了しました！');
-    }
-
 }

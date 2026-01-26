@@ -5,42 +5,55 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-12 bg-[#fafafa]">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <form action="{{ route('reservations.datetime') }}" method="GET">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
 
-                    <h3 class="text-lg font-bold mb-4 italic text-pink-600">1. メニューを選択（複数選択可）</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        @foreach($menus as $menu)
-                        <label class="border-2 p-4 rounded-xl hover:bg-pink-50 cursor-pointer flex items-center transition-all border-gray-100 has-[:checked]:border-pink-400 has-[:checked]:bg-pink-50">
-                            <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="w-5 h-5 mr-3 text-pink-500 rounded border-gray-300 focus:ring-pink-500">
-                            <div class="flex-1">
-                                <p class="font-bold text-gray-800">{{ $menu->name }}</p>
-                                <p class="text-sm text-gray-600">{{ number_format($menu->price) }}円（{{ $menu->duration }}分）</p>
+                <h3 class="text-sm font-bold mb-6 tracking-widest text-gray-400 uppercase">01. Select Menu</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    @foreach($menus as $menu)
+                    <label class="group relative bg-white border border-gray-200 p-6 cursor-pointer hover:border-black transition-all duration-300 has-[:checked]:border-black has-[:checked]:ring-1 has-[:checked]:ring-black">
+                        <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-lg font-medium text-gray-900">{{ $menu->name }}</p>
+                                <p class="text-sm text-gray-400 mt-1">{{ $menu->duration }} min</p>
                             </div>
-                        </label>
-                        @endforeach
-                    </div>
+                            <p class="text-sm font-semibold text-gray-900">¥{{ number_format($menu->price) }}</p>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
 
-                    <h3 class="text-lg font-bold mb-4 italic text-blue-600">2. スタッフを選択</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                        @foreach($staffs as $staff)
-                        <label class="border-2 p-4 rounded-xl hover:bg-blue-50 cursor-pointer text-center block transition-all border-gray-100 has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
-                            <input type="radio" name="staff_id" value="{{ $staff->id }}" id="staff_{{ $staff->id }}" class="mb-3 w-5 h-5 text-blue-500 focus:ring-blue-500" required>
-                            <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center text-xs text-gray-400 font-bold shadow-inner">PHOTO</div>
-                            <p class="font-bold text-gray-800">{{ $staff->name }}</p>
-                            <p class="text-xs text-gray-500 line-clamp-2 px-2">{{ $staff->description }}</p>
-                        </label>
-                        @endforeach
-                    </div>
+                <h3 class="text-sm font-bold mb-6 tracking-widest text-gray-400 uppercase">02. Select Stylist</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
 
-                    <div class="text-center mt-10">
-                        <button type="submit" class="inline-flex items-center px-10 py-4 bg-gradient-to-r from-gray-800 to-gray-700 border border-transparent rounded-full font-semibold text-white uppercase tracking-widest hover:from-gray-700 hover:to-gray-600 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg">
-                            日時選択へ進む ➔
-                        </button>
-                    </div>
+                    <label class="group relative cursor-pointer text-center">
+                        <input type="radio" name="staff_id" value="0" class="hidden" required>
+                        <div class="relative w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 group-hover:border-black transition-all has-[:checked]:border-black has-[:checked]:ring-2 has-[:checked]:ring-black flex items-center justify-center bg-black text-white">
+                            <span class="text-[10px] tracking-[0.3em] font-light">ANY STAFF</span>
+                        </div>
+                        <p class="text-lg font-medium text-gray-900">指名なし</p>
+                        <p class="text-xs text-gray-400 mt-1 px-4 italic">No designated stylist</p>
+                    </label>
 
+                    @foreach($staffs as $staff)
+                    <label class="group relative cursor-pointer text-center">
+                        <input type="radio" name="staff_id" value="{{ $staff->id }}" class="hidden" required>
+                        <div class="relative w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 group-hover:border-black transition-all has-[:checked]:border-black has-[:checked]:ring-2 has-[:checked]:ring-black">
+                            {{-- 本来は画像を入れる場所 --}}
+                            <div class="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300">PHOTO</div>
+                        </div>
+                        <p class="text-lg font-medium text-gray-900">{{ $staff->name }}</p>
+                        <p class="text-xs text-gray-400 mt-1 leading-relaxed px-4">{{ $staff->description }}</p>
+                    </label>
+                    @endforeach
+                </div>
+
+                <div class="text-center mt-16">
+                    <button type="submit" class="bg-black text-white text-xs tracking-[0.2em] px-12 py-5 uppercase hover:bg-gray-800 transition-all duration-300 shadow-sm">
+                        Confirm Selection
+                    </button>
                 </div>
             </form>
         </div>

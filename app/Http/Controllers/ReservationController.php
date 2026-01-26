@@ -29,7 +29,7 @@ class ReservationController extends Controller
         $menus = Menu::whereIn('id', $selectedMenuIds)->get();
         $staff = Staff::find($selectedStaffId);
 
-        // 次の画面（日時選択）を表示（まだファイルがないのでまずはデータ確認）
+        // 30分刻みの時間枠を作成
         return view('reservations.datetime', compact('menus', 'staff'));
     }
 

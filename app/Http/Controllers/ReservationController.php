@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Staff;
 use App\Models\Menu;
-
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -32,4 +32,20 @@ class ReservationController extends Controller
         // 次の画面（日時選択）を表示（まだファイルがないのでまずはデータ確認）
         return view('reservations.datetime', compact('menus', 'staff'));
     }
+
+    public function store(Request $request)
+    {
+        // 予約を保存（メニューが複数の場合も考え代表で1つ保存）
+        $reservation = new Reservation();
+        $reservation->user_id = auth()->id();
+        $reservation->staff_id = $request->staff_id;
+        $reservation->menu_id = $request->menu_ids[0]; // 最初のメニュー
+        $reservation->reservation_date = $request->reservation_date;
+        $reservation->reservation_time = $request->reservation_time;
+        $reservation->status = 'pending';
+        $reservation->save();
+
+        return redirect()->route('dashboard')->with('success', '予約が完了しました！');
+    }
+
 }

@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reserve', [ReservationController::class, 'index'])->name('reservations.index');
     // 日時選択画面
     Route::get('/reserve/datetime', [ReservationController::class, 'showDateTime'])->name('reservations.datetime');
+    // 予約をデータベースに保存する処理
+    Route::post('/reserve/store', [ReservationController::class, 'store'])->name('reservations.store');
 });
 
 require __DIR__ . '/auth.php';

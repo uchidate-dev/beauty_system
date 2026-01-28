@@ -23,6 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reserve', [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reserve/datetime', [ReservationController::class, 'showDateTime'])->name('reservations.datetime');
     Route::post('/reserve/store', [ReservationController::class, 'store'])->name('reservations.store');
+
+    // 予約キャンセル
+    Route::delete('/reserve/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 });
 
 // 1週間分の空き状況を取得するAPI
@@ -32,5 +35,7 @@ Route::get('/api/reservations/check-week', [ReservationController::class, 'check
 Route::get('/reserve/thanks', function () {
     return view('reservations.thanks');
 })->name('reservations.thanks');
+
+
 
 require __DIR__ . '/auth.php';

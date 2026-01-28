@@ -118,14 +118,32 @@ class ReservationController extends Controller
 
     public function dashboard()
     {
-        // ログイン中のユーザーの、これからの予約をスタッフ情報付きで取得
-        $reservations = auth()->user()->reservations()
-            ->with('staff')
-            ->where('reservation_date', '>=', now()->format('Y-m-d'))
-            ->orderBy('reservation_date')
-            ->orderBy('reservation_time')
+        // 全予約を取得（新しい順）
+        $all = auth()->user()->reservations()
+            ->with(['staff', 'menus'])
+            ->orderBy('reservation_date', 'desc')
+            ->orderBy('reservation_time', 'desc')
             ->get();
 
-        return view('dashboard', compact('reservations'));
+        $today = now()->format('Y-m-d');
+
+        // 未来の予約（今日を含む）
+        $upcomingReservations = $all->where('reservation_date', '>=', $today)->reverse();
+        // 過去の予約
+        $pastReservations = $all->where('reservation_date', '<', $today);
+
+        return view('dashboard', compact('upcomingReservations', 'pastReservations'));
+    }
+
+    public function destroy(Reservation $reservation)
+    {
+        // 本人の予約以外は消せないようにする
+        if ($reservation->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $reservation->delete();
+
+        return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }
 }

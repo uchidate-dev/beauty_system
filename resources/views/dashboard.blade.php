@@ -51,6 +51,12 @@
                             <div class="text-right" x-data="{ open: false }">
                                 {{-- Status表示 --}}
                                 <span class="text-[10px] tracking-widest uppercase text-gray-400 italic">Confirmed / 予約確定</span>
+
+                                {{-- 金額表示 --}}
+                                <p class="text-lg font-light text-gray-900 mt-1">
+                                    ¥{{ number_format($reservation->menus->sum('price')) }}
+                                </p>
+
                                 <p class="text-[10px] text-gray-500 mt-1 mb-4">ご来店をお待ちしております</p>
 
                                 {{-- キャンセルボタン：クリックで open を true に --}}
@@ -95,8 +101,6 @@
                                         </div>
                                     </div>
                                 </template>
-                                </button>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -114,14 +118,19 @@
                 @else
                 <div class="grid grid-cols-1 gap-4 opacity-70">
                     @foreach($pastReservations as $reservation)
-                    <div class="p-4 border-l-2 border-gray-200 bg-gray-50/50">
-                        <p class="text-[10px] text-gray-400">
-                            {{ \Carbon\Carbon::parse($reservation->reservation_date)->format('Y.m.d') }}
-                        </p>
-                        <p class="text-sm font-medium text-gray-600">{{ $reservation->staff->name }}</p>
-                        <p class="text-[10px] text-gray-400 mt-1">
-                            @foreach($reservation->menus as $menu) {{ $menu->name }}{{ !$loop->last ? ', ' : '' }} @endforeach
-                        </p>
+                    <div class="p-5 border-l-2 border-gray-200 bg-gray-50/50 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-400">
+                                {{ \Carbon\Carbon::parse($reservation->reservation_date)->format('Y.m.d') }}
+                            </p>
+                            <p class="text-sm font-medium text-gray-600 tracking-wider">{{ $reservation->staff->name }}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">
+                                @foreach($reservation->menus as $menu) {{ $menu->name }}{{ !$loop->last ? ', ' : '' }} @endforeach
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500 font-light italic">¥{{ number_format($reservation->menus->sum('price')) }}</p>
+                        </div>
                     </div>
                     @endforeach
                 </div>

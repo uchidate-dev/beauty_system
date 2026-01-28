@@ -12,10 +12,9 @@ class ReservationController extends Controller
     public function index()
     {
         // データベースから全スタッフと全メニューを取得
-        $staffs = Staff::all();
+        $staffs = Staff::whereIn('id', [1, 2, 3])->get();
         $menus = Menu::all();
 
-        // 予約画面（これから作成）にデータを渡す
         return view('reservations.index', compact('staffs', 'menus'));
     }
 
@@ -35,10 +34,13 @@ class ReservationController extends Controller
         $menus = Menu::whereIn('id', $selectedMenuIds)->get();
 
         // スタッフ情報の取得（指名なし 0 の場合も考慮）
-        // 1週間分の表はJSで作るのでここではスタッフとメニューを渡す
         if ($selectedStaffId == 0) {
-            $staff = new Staff(['id' => 0, 'name' => '指名なし']);
+            // 指名なしの場合：DBを通さず、その場で「指名なし」というスタッフを作る
+            $staff = new Staff();
+            $staff->id = 0;
+            $staff->name = '指名なし';
         } else {
+            // 指名ありの場合：DBから本物のスタッフを探してくる
             $staff = Staff::findOrFail($selectedStaffId);
         }
 
@@ -70,15 +72,13 @@ class ReservationController extends Controller
         // 定休日設定 (0:日, 1:月, 2:火, 3:水, 4:木, 5:金, 6:土)
         // お店は火曜(2)休み
         $holidayMap = [
-            'Hikaru' => [2, 3], // 火・水
-            'Yuki'   => [2, 1], // 火・月
-            'Ken'    => [2, 4], // 火・木
+            1 => [2, 3], // ID 1(Hikaru) は火・水休み
+            2 => [2, 1], // ID 2(Yuki)   は火・月休み
+            3 => [2, 4], // ID 3(Ken)    は火・木休み
+            0 => [2],  // 指名なし は火曜休み
         ];
-
-        // 指名なし(0)の場合は火曜(2)のみ休みとする
-        $staff = Staff::find($staffId);
-        $staffName = $staff ? $staff->name : 'Any';
-        $staffHolidays = $holidayMap[$staffName] ?? [2];
+        // 直接 ID で休日を取得
+        $staffHolidays = $holidayMap[$staffId] ?? [2];
 
         return response()->json([
             'booked' => $bookedData,
@@ -100,18 +100,45 @@ class ReservationController extends Controller
             'reservation_time' => 'required',
         ]);
 
-        // 1. 予約の基本情報を保存
-        $reservation = new Reservation();
-        $reservation->user_id = auth()->id(); // ログイン中のユーザーID
-        $reservation->staff_id = $request->staff_id;
-        $reservation->reservation_date = $request->reservation_date;
-        $reservation->reservation_time = $request->reservation_time;
-        $reservation->status = 'pending'; // まずは「予約中」として保存
-        $reservation->save();
+        //  保存直前に空き状況を最終チェック
+        // 「同じ日の同じスタッフに、同じ時間の予約」が既にないか確認
+        $exists = Reservation::where('staff_id', $request->staff_id)
+            ->where('reservation_date', $request->reservation_date)
+            ->where('reservation_time', $request->reservation_time)
+            ->exists();
 
-        // 2. 予約とメニューを紐付ける（多対多の場合）
-        // ※中間テーブルがある前提です。もし単純な作りならここを調整します。
-        $reservation->menus()->attach($request->menu_ids);
+        if ($exists) {
+            return redirect()->route('reservations.index')
+                ->with('error', '申し訳ありません。予約が埋まってしまいました。');
+        }
+
+        // 1. 合計所要時間を計算
+        $selectedMenus = Menu::whereIn('id', $request->menu_ids)->get();
+        $totalDuration = $selectedMenus->sum('duration');
+
+        // 2. コマ数を計算 (30分単位で切り上げ)
+        $frameCount = ceil($totalDuration / 30);
+
+        for ($i = 0; $i < $frameCount; $i++) {
+
+            $reservation = new Reservation();
+            $reservation->user_id = auth()->id(); // ログイン中のユーザーID
+            $reservation->staff_id = $request->staff_id;
+            $reservation->reservation_date = $request->reservation_date;
+
+            $startTime = strtotime($request->reservation_time);
+            $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
+
+            $reservation->status = 'pending'; // まずは「予約中」として保存
+            $reservation->save();
+
+            if ($i === 0) {
+
+                // 2. 予約とメニューを紐付ける（多対多の場合）
+                // ※中間テーブルがある前提です。もし単純な作りならここを調整します。
+                $reservation->menus()->attach($request->menu_ids);
+            }
+        }
 
         // 3. 完了画面へリダイレクト
         return redirect()->route('reservations.thanks')
@@ -123,6 +150,7 @@ class ReservationController extends Controller
         // 全予約を取得（新しい順）
         $all = auth()->user()->reservations()
             ->with(['staff', 'menus'])
+            ->has('menus')
             ->orderBy('reservation_date', 'desc')
             ->orderBy('reservation_time', 'desc')
             ->get();
@@ -144,7 +172,13 @@ class ReservationController extends Controller
             abort(403);
         }
 
-        $reservation->delete();
+        // 「同じ日、同じスタッフ、同じユーザー」で、
+        // 「メインの予約（自分）以降の時間」にある予約（ダミーコマ含む）をまとめて消す
+        Reservation::where('user_id', $reservation->user_id)
+            ->where('staff_id', $reservation->staff_id)
+            ->where('reservation_date', $reservation->reservation_date)
+            ->where('reservation_time', '>=', $reservation->reservation_time)
+            ->delete(); // メインもダミーもまとめて一気に削除！
 
         return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }

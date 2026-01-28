@@ -8,9 +8,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// ✅ ここを修正！Controllerを通すようにします
+Route::get('/dashboard', [ReservationController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     // プロフィール関連
@@ -18,12 +19,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 予約の入り口（メニュー・スタッフ選択）
+    // 予約関連（グループの中にまとめるとスッキリします）
     Route::get('/reserve', [ReservationController::class, 'index'])->name('reservations.index');
-    // 日時選択画面
     Route::get('/reserve/datetime', [ReservationController::class, 'showDateTime'])->name('reservations.datetime');
-    // 予約をデータベースに保存する処理
     Route::post('/reserve/store', [ReservationController::class, 'store'])->name('reservations.store');
 });
+
+// 1週間分の空き状況を取得するAPI
+Route::get('/api/reservations/check-week', [ReservationController::class, 'checkWeekAvailability']);
+
+// 完了画面
+Route::get('/reserve/thanks', function () {
+    return view('reservations.thanks');
+})->name('reservations.thanks');
 
 require __DIR__ . '/auth.php';

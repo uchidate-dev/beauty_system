@@ -19,6 +19,7 @@ class ReservationController extends Controller
         return view('reservations.index', compact('staffs', 'menus'));
     }
 
+    // 予約日時選択画面を表示するメソッド（既存の showDateTime を書き換え）
     public function showDateTime(Request $request)
     {
         // 画面で選んだメニューとスタッフのIDを受け取る
@@ -32,26 +33,99 @@ class ReservationController extends Controller
 
         // IDから実際のデータを取得
         $menus = Menu::whereIn('id', $selectedMenuIds)->get();
-        // 指名なし(0)の場合はダミーのスタッフデータを作る
+
+        // スタッフ情報の取得（指名なし 0 の場合も考慮）
+        // 1週間分の表はJSで作るのでここではスタッフとメニューを渡す
         if ($selectedStaffId == 0) {
-            $staff = new \App\Models\Staff();
-            $staff->id = 0;
-            $staff->name = '指名なし';
+            $staff = new Staff(['id' => 0, 'name' => '指名なし']);
         } else {
-            $staff = Staff::find($selectedStaffId);
+            $staff = Staff::findOrFail($selectedStaffId);
         }
 
-        // 30分刻みの時間はそのままでOK
-        $times = [];
-        $start = new \DateTime('10:00');
-        $end = new \DateTime('19:00');
-        $interval = new \DateInterval('PT30M');
+        return view('reservations.datetime', compact('menus', 'staff'));
+    }
+    // Ajaxから呼ばれて「1週間分の予約済みリスト」を返すメソッド
+    public function checkWeekAvailability(Request $request)
+    {
+        $staffId = $request->staff_id;
+        // 今日から7日後までの範囲
+        $startDate = $request->start_date ?: date('Y-m-d');
+        $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
 
-        while ($start <= $end) {
-            $times[] = $start->format('H:i');
-            $start->add($interval);
+        // 指定期間の予約データを取得
+        $reservations = \App\Models\Reservation::where('staff_id', $staffId)
+            ->whereBetween('reservation_date', [$startDate, $endDate])
+            ->get();
+
+        // JSが扱いやすいように 「日付 => [時間, 時間]」 の形に整理
+        $bookedData = [];
+        foreach ($reservations as $res) {
+            // データベースの日付 (2026-01-26)
+            $date = $res->reservation_date;
+            // データベースの時間 (10:00:00 →10:00)
+            $time = date('H:i', strtotime($res->reservation_time));
+            $bookedData[$date][] = $time;
         }
 
-        return view('reservations.datetime', compact('menus', 'staff', 'times'));
+        // 定休日設定 (0:日, 1:月, 2:火, 3:水, 4:木, 5:金, 6:土)
+        // お店は火曜(2)休み
+        $holidayMap = [
+            'Hikaru' => [2, 3], // 火・水
+            'Yuki'   => [2, 1], // 火・月
+            'Ken'    => [2, 4], // 火・木
+        ];
+
+        $staff = \App\Models\Staff::find($staffId);
+        $staffHolidays = ($staff && isset($holidayMap[$staff->name])) ? $holidayMap[$staff->name] : [2];
+
+        return response()->json([
+            'booked' => $bookedData,
+            'holidays' => $staffHolidays
+        ]);
+    }
+    // 予約をデータベースに保存する
+    public function store(Request $request)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', '予約にはログインが必要です');
+        }
+
+        // 送られてきたデータのバリデーション（チェック）
+        $request->validate([
+            'staff_id' => 'required',
+            'menu_ids' => 'required|array',
+            'reservation_date' => 'required|date',
+            'reservation_time' => 'required',
+        ]);
+
+        // 1. 予約の基本情報を保存
+        $reservation = new Reservation();
+        $reservation->user_id = auth()->id(); // ログイン中のユーザーID
+        $reservation->staff_id = $request->staff_id;
+        $reservation->reservation_date = $request->reservation_date;
+        $reservation->reservation_time = $request->reservation_time;
+        $reservation->status = 'pending'; // まずは「予約中」として保存
+        $reservation->save();
+
+        // 2. 予約とメニューを紐付ける（多対多の場合）
+        // ※中間テーブルがある前提です。もし単純な作りならここを調整します。
+        $reservation->menus()->attach($request->menu_ids);
+
+        // 3. 完了画面へリダイレクト
+        return redirect()->route('reservations.thanks')
+            ->with('success', '予約が完了しました！');
+    }
+
+    public function dashboard()
+    {
+        // ログイン中のユーザーの、これからの予約をスタッフ情報付きで取得
+        $reservations = auth()->user()->reservations()
+            ->with('staff')
+            ->where('reservation_date', '>=', now()->format('Y-m-d'))
+            ->orderBy('reservation_date')
+            ->orderBy('reservation_time')
+            ->get();
+
+        return view('dashboard', compact('reservations'));
     }
 }

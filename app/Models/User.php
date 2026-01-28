@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Reservation;
 
 class User extends Authenticatable
 {
@@ -42,4 +43,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    /**
+     * ユーザーに紐づく予約一覧を取得
+     */
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

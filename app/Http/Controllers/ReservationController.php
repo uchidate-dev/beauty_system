@@ -53,7 +53,7 @@ class ReservationController extends Controller
         $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
 
         // 指定期間の予約データを取得
-        $reservations = \App\Models\Reservation::where('staff_id', $staffId)
+        $reservations = Reservation::where('staff_id', $staffId)
             ->whereBetween('reservation_date', [$startDate, $endDate])
             ->get();
 
@@ -75,8 +75,10 @@ class ReservationController extends Controller
             'Ken'    => [2, 4], // 火・木
         ];
 
-        $staff = \App\Models\Staff::find($staffId);
-        $staffHolidays = ($staff && isset($holidayMap[$staff->name])) ? $holidayMap[$staff->name] : [2];
+        // 指名なし(0)の場合は火曜(2)のみ休みとする
+        $staff = Staff::find($staffId);
+        $staffName = $staff ? $staff->name : 'Any';
+        $staffHolidays = $holidayMap[$staffName] ?? [2];
 
         return response()->json([
             'booked' => $bookedData,

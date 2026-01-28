@@ -5,8 +5,20 @@
         </h2>
     </x-slot>
 
+
     <div class="py-12 bg-[#fafafa]">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- マイページに戻るボタン --}}
+            <div class="mb-8 px-4">
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center text-[10px] tracking-[0.3em] text-gray-400 hover:text-black transition-all duration-300 group">
+                    <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    BACK TO MY PAGE
+                </a>
+            </div>
+
             <form action="{{ route('reservations.datetime') }}" method="GET">
 
                 {{-- 01. Select Menu --}}
@@ -50,35 +62,37 @@
                         <input type="radio" name="staff_id" value="{{ $staff->id }}" class="hidden peer" required>
 
                         {{-- 画像コンテナ --}}
-                        <div class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full border border-gray-100 transition-all duration-500
-        group-hover:ring-2 group-hover:ring-black group-hover:ring-offset-2
-        peer-checked:ring-2 peer-checked:ring-black peer-checked:ring-offset-2 peer-checked:shadow-lg overflow-hidden">
+                        <div class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full border border-gray-100 transition-all duration-700
+                                    group-hover:ring-1 group-hover:ring-black group-hover:ring-offset-4
+                                    peer-checked:ring-1 peer-checked:ring-black peer-checked:ring-offset-4 peer-checked:shadow-sm overflow-hidden">
 
                             {{-- 画像 --}}
                             <img src="{{ asset('images/staff' . $staff->id . '.png') }}"
                                 alt="{{ $staff->name }}"
                                 id="img-staff-{{ $staff->id }}"
-                                class="js-staff-image w-full h-full object-cover transition-all duration-500 grayscale group-hover:grayscale-0 peer-checked:scale-110">
+                                class="js-staff-image w-full h-full object-cover transition-all duration-1000 grayscale group-hover:grayscale-0">
                         </div>
 
-                        {{-- 名前：選択時に文字色を濃く、少し大きく --}}
-                        <p class="text-sm md:text-base font-bold text-gray-400 tracking-tight transition-all duration-300
-                            group-hover:text-black
-                peer-checked:text-black peer-checked:scale-105">
+                        <p class="text-sm md:text-base font-medium text-gray-400 tracking-[0.1em] transition-all duration-500
+                                    group-hover:text-black
+                                    peer-checked:text-black peer-checked:tracking-[0.25em]">
                             {{ $staff->name }}
                         </p>
 
+                        {{-- 選択中にだけ細いラインが出るようにする --}}
+                        <div class="w-0 h-[1px] bg-black mx-auto mt-2 transition-all duration-700 peer-checked:w-6"></div>
+
                         <div class="mt-3 px-1 min-h-[80px]">
-                            <p class="text-[10px] leading-relaxed text-gray-400 font-medium italic transition-all duration-300
-                                      group-hover:text-gray-900 peer-checked:text-gray-900">
+                            <p class="text-[10px] leading-relaxed text-gray-400 font-light italic transition-all duration-500
+                                      group-hover:text-gray-600 peer-checked:text-gray-800">
                                 @if($staff->id == 1)
-                                <span class="block text-gray-300 font-bold uppercase tracking-tighter text-[8px] mb-1 not-italic group-hover:text-gray-500 peer-checked:text-gray-500">Owner / Director</span>
+                                <span class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Owner / Director</span>
                                 一人ひとりの骨格に寄り添う、唯一無二のシルエットを。
                                 @elseif($staff->id == 2)
-                                <span class="block text-gray-300 font-bold uppercase tracking-tighter text-[8px] mb-1 not-italic group-hover:text-gray-500 peer-checked:text-gray-500">Color Specialist</span>
+                                <span class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Color Specialist</span>
                                 透明感と柔らかな質感。光に溶け込むカラーをご提供します。
                                 @elseif($staff->id == 3)
-                                <span class="block text-gray-300 font-bold uppercase tracking-tighter text-[8px] mb-1 not-italic group-hover:text-gray-500 peer-checked:text-gray-500">Men's Expert</span>
+                                <span class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Men's Expert</span>
                                 洗練されたエッジ。日常を格上げするメンズスタイルを再現します。
                                 @else
                                 {{ $staff->description }}

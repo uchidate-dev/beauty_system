@@ -39,7 +39,7 @@
                 あなただけの特別な美しさを。
             </p>
 
-            <a href="{{ route('reservations.index') }}" class="inline-block border border-white text-white px-12 py-4 text-xs tracking-[0.3em] hover:bg-white hover:text-gray-900 transition duration-500 uppercase backdrop-blur-sm">
+            <a href="{{ route('booking.gate') }}" class="inline-block border border-white text-white px-12 py-4 text-xs tracking-[0.3em] hover:bg-white hover:text-gray-900 transition duration-500 uppercase backdrop-blur-sm">
                 Book Now / オンライン予約
             </a>
         </div>

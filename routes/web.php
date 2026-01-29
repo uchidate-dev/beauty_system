@@ -31,10 +31,19 @@ Route::middleware('auth')->group(function () {
 // 1週間分の空き状況を取得するAPI
 Route::get('/api/reservations/check-week', [ReservationController::class, 'checkWeekAvailability']);
 
-// 完了画面
+// 予約完了画面
 Route::get('/reserve/thanks', function () {
     return view('reservations.thanks');
 })->name('reservations.thanks');
+
+// Book Nowの遷移先をログイン状態によって変える
+Route::get('/booking-gate', function () {
+    if (auth()->check()) {
+        return redirect()->route('reservations.index');
+    }
+    // ログインしていなければ中間ページへ
+    return view('auth.booking-gate');
+})->name('booking.gate');
 
 
 

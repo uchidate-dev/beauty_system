@@ -9,14 +9,18 @@
             <form method="POST" action="{{ route('login') }}" class="space-y-8">
                 @csrf
                 <div>
-                    <label class="block text-[10px] tracking-[0.2em] uppercase text-gray-400 mb-2">Email Address</label>
-                    <input type="email" name="email" class="w-full border-0 border-b border-gray-200 focus:ring-0 focus:border-gray-800 transition-all text-sm p-0 pb-2" required autofocus>
+                    <label class="block text-[10px] tracking-[0.2em] uppercase text-gray-600 mb-2 font-medium">
+                        Email Address <span class="text-[8px] opacity-80">/ メールアドレス</span>
+                    </label>
+                    <input type="email" name="email" class="w-full border-0 border-b border-gray-300 focus:ring-0 focus:border-gray-800 transition-all text-sm p-0 pb-2 text-gray-900" required autofocus>
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
-                <div>
-                    <label class="block text-[10px] tracking-[0.2em] uppercase text-gray-400 mb-2">Password</label>
-                    <input type="password" name="password" class="w-full border-0 border-b border-gray-200 focus:ring-0 focus:border-gray-800 transition-all text-sm p-0 pb-2" required>
+                <div class="mt-8">
+                    <label class="block text-[10px] tracking-[0.2em] uppercase text-gray-600 mb-2 font-medium">
+                        Password <span class="text-[8px] opacity-80">/ パスワード</span>
+                    </label>
+                    <input type="password" name="password" class="w-full border-0 border-b border-gray-300 focus:ring-0 focus:border-gray-800 transition-all text-sm p-0 pb-2 text-gray-900" required>
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 

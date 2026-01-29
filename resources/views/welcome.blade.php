@@ -50,9 +50,10 @@
 
             <div class="w-[1px] h-16 bg-gray-200 mx-auto mb-12"></div>
 
-            <h2 class="text-2xl font-light tracking-[0.4em] mb-16 text-gray-800 relative inline-block">
+            <h2 class="text-3xl font-light tracking-[0.4em] text-gray-800 uppercase mb-2">
                 CONCEPT
-                <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 tracking-[0.2em] whitespace-nowrap italic">Our Philosophy</span>
+                <span class="text-[10px] tracking-[0.3em] text-gray-400 italic uppercase">
+                    Our Philosophy</span>
             </h2>
 
             <div class="space-y-10 max-w-2xl mx-auto">

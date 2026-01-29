@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReservationController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -45,6 +47,9 @@ Route::get('/booking-gate', function () {
     return view('auth.booking-gate');
 })->name('booking.gate');
 
-
+// 管理者(admin)のみが入れるルートグループ
+Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+});
 
 require __DIR__ . '/auth.php';

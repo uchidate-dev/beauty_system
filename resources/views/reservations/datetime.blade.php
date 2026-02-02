@@ -248,7 +248,7 @@
 
                             dateArray.forEach(dStr => {
                                 const cellDate = new Date(dStr + ' ' + time);
-                                const isBooked = booked[dStr] && booked[dStr].includes(time);
+                                const isBooked = booked && booked[dStr] && booked[dStr].includes(time);
                                 const isHoliday = holidays.includes(new Date(dStr).getDay());
                                 const isPast = cellDate < new Date();
 

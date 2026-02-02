@@ -52,4 +52,10 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 });
 
+// routes/web.php に追記（AdminControllerのグループ内など）
+Route::patch('/admin/reservations/{id}/assign', [App\Http\Controllers\AdminController::class, 'assign'])->name('admin.reservations.assign');
+
+// adminが行う予約キャンセルボタン
+Route::delete('/admin/reservations/{id}', [App\Http\Controllers\AdminController::class, 'destroy'])->name('admin.reservations.destroy');
+
 require __DIR__ . '/auth.php';

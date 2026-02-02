@@ -39,7 +39,7 @@
                                     {{ substr($reservation->reservation_time, 0, 5) }}
                                 </p>
                                 <p class="text-lg font-medium text-gray-800 tracking-widest">
-                                    {{ $reservation->staff->name }}
+                                    {{ $reservation->staff->name ?? '指名なし' }}
                                 </p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($reservation->menus as $menu)
@@ -59,7 +59,7 @@
 
                                 <p class="text-[10px] text-gray-500 mt-1 mb-4">ご来店をお待ちしております</p>
 
-                                {{-- キャンセルボタン：クリックで open を true に --}}
+                                {{-- キャンセルボタン--}}
                                 <button @click="open = true" type="button" class="text-[10px] text-red-300 hover:text-red-500 transition-colors tracking-widest border-b border-red-100">
                                     CANCEL / キャンセル
                                 </button>
@@ -123,7 +123,9 @@
                             <p class="text-[10px] text-gray-400">
                                 {{ \Carbon\Carbon::parse($reservation->reservation_date)->format('Y.m.d') }}
                             </p>
-                            <p class="text-sm font-medium text-gray-600 tracking-wider">{{ $reservation->staff->name }}</p>
+                            <p class="text-sm font-medium text-gray-600 tracking-wider">
+                                {{ $reservation->staff->name ?? '指名なし' }}
+                            </p>
                             <p class="text-[10px] text-gray-400 mt-1">
                                 @foreach($reservation->menus as $menu) {{ $menu->name }}{{ !$loop->last ? ', ' : '' }} @endforeach
                             </p>

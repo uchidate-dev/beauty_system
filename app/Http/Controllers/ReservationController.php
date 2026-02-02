@@ -46,38 +46,89 @@ class ReservationController extends Controller
 
         return view('reservations.datetime', compact('menus', 'staff'));
     }
+
     // Ajaxから呼ばれて「1週間分の予約済みリスト」を返すメソッド
     public function checkWeekAvailability(Request $request)
     {
-        $staffId = $request->staff_id;
-        // 今日から7日後までの範囲
+        $staffId = $request->staff_id; // ユーザーが指名しようとしているスタッフ（0なら指名なし）
         $startDate = $request->start_date ?: date('Y-m-d');
         $endDate = date('Y-m-d', strtotime($startDate . ' +6 days'));
 
-        // 指定期間の予約データを取得
-        $reservations = Reservation::where('staff_id', $staffId)
-            ->whereBetween('reservation_date', [$startDate, $endDate])
-            ->get();
+        $reservations = Reservation::whereBetween('reservation_date', [$startDate, $endDate])->get();
 
-        // JSが扱いやすいように 「日付 => [時間, 時間]」 の形に整理
-        $bookedData = [];
+        // 集計処理
+        $totalUsage = []; // お店全体の予約数（指名なし含む)
+        $staffUsage = []; // スタッフごとの予約数
+
         foreach ($reservations as $res) {
-            // データベースの日付 (2026-01-26)
             $date = $res->reservation_date;
-            // データベースの時間 (10:00:00 →10:00)
             $time = date('H:i', strtotime($res->reservation_time));
-            $bookedData[$date][] = $time;
+
+            // A. お店全体のカウント
+            $totalUsage[$date][$time] = ($totalUsage[$date][$time] ?? 0) + 1;
+
+            // B. スタッフ個別のカウント(指名されている場合)
+            if ($res->staff_id) { // staff_id がNULL(指名なし) じゃなければ
+                $staffUsage[$res->staff_id][$date][$time] = ($staffUsage[$res->staff_id][$date][$time] ?? 0) + 1;
+            }
         }
 
-        // 定休日設定 (0:日, 1:月, 2:火, 3:水, 4:木, 5:金, 6:土)
-        // お店は火曜(2)休み
+        // 3. JSに返す「予約不可リスト」を作成
+        $bookedData = [];
+
+        // 定休日・出勤人数のマップ
         $holidayMap = [
-            1 => [2, 3], // ID 1(Hikaru) は火・水休み
-            2 => [2, 1], // ID 2(Yuki)   は火・月休み
-            3 => [2, 4], // ID 3(Ken)    は火・木休み
-            0 => [2],  // 指名なし は火曜休み
+            1 => [2, 3], //Hikaru
+            2 => [2, 1], //Yuki
+            3 => [2, 4], //Ken
         ];
-        // 直接 ID で休日を取得
+
+        // 期間中の各日付についてチェック
+        $currentDate = $startDate;
+        while (strtotime($currentDate) <= strtotime($endDate)) {
+            $dateStr = date('Y-m-d', strtotime($currentDate));
+            $dayOfWeek = date('w', strtotime($currentDate));
+
+            // その日の最大キャパ数を計算
+            $activeStaffCount = 0;
+            foreach ([1, 2, 3] as $id) {
+                if (!in_array($dayOfWeek, $holidayMap[$id] ?? [])) {
+                    $activeStaffCount++;
+                }
+            }
+
+            // その日に予約が入っている時間枠をループ
+            if (isset($totalUsage[$dateStr])) {
+                foreach ($totalUsage[$dateStr] as $time => $totalCount) {
+
+                    $isFull = false;
+
+                    // 【条件A】お店全体が満席か？
+                    // 指名・指名なしに関わらず、予約総数がスタッフ人数に達していたらアウト
+                    if ($totalCount >= $activeStaffCount) {
+                        $isFull = true;
+                    }
+
+                    // 【条件B】指名したスタッフが埋まっているか？                
+                    if ($staffId != 0 && !$isFull) {
+                        // そのスタッフ個人の予約数をチェック
+                        $myCount = $staffUsage[$staffId][$dateStr][$time] ?? 0;
+                        if ($myCount >= 1) {
+                            $isFull = true;
+                        }
+                    }
+
+                    // 満席判定ならリストに追加
+                    if ($isFull) {
+                        $bookedData[$dateStr][] = $time;
+                    }
+                }
+            }
+
+            $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
+        }
+
+        // 定休日情報の取得
         $staffHolidays = $holidayMap[$staffId] ?? [2];
 
         return response()->json([
@@ -85,6 +136,7 @@ class ReservationController extends Controller
             'holidays' => $staffHolidays
         ]);
     }
+
     // 予約をデータベースに保存する
     public function store(Request $request)
     {
@@ -100,32 +152,69 @@ class ReservationController extends Controller
             'reservation_time' => 'required',
         ]);
 
-        //  保存直前に空き状況を最終チェック
-        // 「同じ日の同じスタッフに、同じ時間の予約」が既にないか確認
-        $exists = Reservation::where('staff_id', $request->staff_id)
-            ->where('reservation_date', $request->reservation_date)
-            ->where('reservation_time', $request->reservation_time)
-            ->exists();
+        // 全体キャパシティ（その日の出勤スタッフ数）チェック
 
-        if ($exists) {
-            return redirect()->route('reservations.index')
-                ->with('error', '申し訳ありません。予約が埋まってしまいました。');
+        $dayOfWeek = date('w', strtotime($request->reservation_date));
+        $holidayMap = [
+            1 => [2, 3], // Hikaru
+            2 => [2, 1], // Ami
+            3 => [2, 4], // Ken
+        ];
+
+        // 今日出勤しているスタッフのIDリストを作成
+        $activeStaffIds = [];
+        foreach ([1, 2, 3] as $id) {
+            if (!in_array($dayOfWeek, $holidayMap[$id] ?? [])) {
+                $activeStaffIds[] = $id;
+            }
         }
 
-        // 1. 合計所要時間を計算
+        // お店の最大予約可能枠数（= 出勤スタッフ数）
+        $maxCapacity = count($activeStaffIds);
+        // その時間の「現在の予約総数」をカウント（指名・指名なし合算）
+        $currentReservationsCount = Reservation::where('reservation_date', $request->reservation_date)
+            ->where('reservation_time', $request->reservation_time)
+            ->count();
+
+        // 満席チェック
+        if ($currentReservationsCount >= $maxCapacity) {
+            return redirect()->route('reservations.index')
+                ->with('error', '申し訳ございません。この時間は満席です。');
+        }
+
+        // 指名ありの場合の個別チェック
+        $targetStaffId = $request->staff_id;
+
+        if ($targetStaffId != 0) {
+            // 指名されたスタッフがすでに埋まっていないかチェック
+            $isStaffBooked = Reservation::where('staff_id', $targetStaffId)
+                ->where('reservation_date', $request->reservation_date)
+                ->where('reservation_time', $request->reservation_time)
+                ->exists();
+
+            if ($isStaffBooked) {
+                return redirect()->route('reservations.index')
+                    ->with('error', '申し訳ありません。ご指名のスタッフは既に予約が入っています。');
+            }
+        }
+
+        // 保存処理
+        // 指名なし(0)ならNULLにする、指名ありならそのままIDを使う
+        $dbStaffId = ($targetStaffId == 0) ? null : $targetStaffId;
+
+        // 合計所要時間を計算
         $selectedMenus = Menu::whereIn('id', $request->menu_ids)->get();
         $totalDuration = $selectedMenus->sum('duration');
 
-        // 2. コマ数を計算 (30分単位で切り上げ)
+        // コマ数を計算 (30分単位で切り上げ)
         $frameCount = ceil($totalDuration / 30);
 
         for ($i = 0; $i < $frameCount; $i++) {
 
             $reservation = new Reservation();
-            $reservation->user_id = auth()->id(); // ログイン中のユーザーID
-            $reservation->staff_id = $request->staff_id;
+            $reservation->user_id = auth()->id();
+            $reservation->staff_id = $dbStaffId;
             $reservation->reservation_date = $request->reservation_date;
-
             $startTime = strtotime($request->reservation_time);
             $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
 
@@ -147,7 +236,9 @@ class ReservationController extends Controller
 
     public function dashboard()
     {
-        // 全予約を取得（新しい順）
+        // 現在の「日時」を取得（例：2026-02-01 10：30：00）
+        $now = now();
+
         $all = auth()->user()->reservations()
             ->with(['staff', 'menus'])
             ->has('menus')
@@ -157,10 +248,20 @@ class ReservationController extends Controller
 
         $today = now()->format('Y-m-d');
 
-        // 未来の予約（今日を含む）
-        $upcomingReservations = $all->where('reservation_date', '>=', $today)->reverse();
-        // 過去の予約
-        $pastReservations = $all->where('reservation_date', '<', $today);
+        // 未来の予約： 「日付が明日以降」または「今日だけど、開始時間が今より後」
+
+        $upcomingReservations = $all->filter(function ($res) use ($now) {
+            $resDateTime = \Carbon\Carbon::parse($res->reservation_date . ' ' . $res->reservation_time);
+            // 現在より未来ならtrue
+            return $resDateTime->isFuture();
+        })->sortBy('reservation_date');
+
+        // 過去の予約 (来店履歴) : 現在より過去のもの
+        $pastReservations = $all->filter(function ($res) use ($now) {
+            $resDateTime = \Carbon\Carbon::parse($res->reservation_date . ' ' . $res->reservation_time);
+            //現在より過去ならtrue
+            return $resDateTime->isPast();
+        })->sortByDesc('reservation_date');
 
         return view('dashboard', compact('upcomingReservations', 'pastReservations'));
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -13,10 +14,19 @@ class AdminController extends Controller
         $selectedDate = $request->input('date', date('Y-m-d'));
 
         // 2. スタッフ取得
-        $staffs = \App\Models\Staff::orderBy('id', 'asc')->get()->unique('name');
+        // データベースにいる本物のスタッフを取得
+        $realStaffs = Staff::orderBy('id', 'asc')->get();
+
+        // 「指名なし」という架空のスタッフを手動で作成
+        $noNominationStaff = new Staff();
+        $noNominationStaff->id = 0; //IDは0とする
+        $noNominationStaff->name = '指名なし';
+
+        // 本物のスタッフリストの「後ろ」に指名なしを追加
+        $staffs = $realStaffs->push($noNominationStaff);
 
         // 3. 予約データ取得
-        $reservations = \App\Models\Reservation::with(['user', 'menus'])
+        $reservations = Reservation::with(['user', 'menus'])
             ->where('reservation_date', $selectedDate)
             ->get();
 
@@ -38,7 +48,11 @@ class AdminController extends Controller
         $timeline = [];
         foreach ($reservations as $res) {
             $time = date('H:i', strtotime($res->reservation_time));
-            $timeline[$time][$res->staff_id] = $res;
+
+            // データベースの staff_idがNULLの場合は、0(指名なし列)に入れる
+            // "??"は「もし左がNULLなら右を使う」という便利な書き方
+            $staffId = $res->staff_id ?? 0;
+            $timeline[$time][$staffId][] = $res;
         }
 
         //  6. 時間枠作成
@@ -60,8 +74,8 @@ class AdminController extends Controller
 
     public function assign(Request $request, $id)
     {
-        $baseReservation = \App\Models\Reservation::findOrFail($id);
-        \App\Models\Reservation::where('reservation_date', $baseReservation->reservation_date)
+        $baseReservation = Reservation::findOrFail($id);
+        Reservation::where('reservation_date', $baseReservation->reservation_date)
             ->where('user_id', $baseReservation->user_id)
             ->where('created_at', $baseReservation->created_at)
             ->update([
@@ -74,8 +88,8 @@ class AdminController extends Controller
 
     public function destroy($id)
     {
-        $reservation = \App\Models\Reservation::findOrFail($id);
-        \App\Models\Reservation::where('user_id', $reservation->user_id)
+        $reservation = Reservation::findOrFail($id);
+        Reservation::where('user_id', $reservation->user_id)
             ->where('reservation_date', $reservation->reservation_date)
             ->where('created_at', $reservation->created_at)
             ->delete();

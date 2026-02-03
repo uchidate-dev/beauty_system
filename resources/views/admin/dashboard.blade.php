@@ -53,7 +53,6 @@
             </div>
 
             {{-- タイムライン表エリア --}}
-            {{-- overflow-hiddenを一時的に解除してボタンが見えるようにします --}}
             <div class="bg-white shadow-sm border border-gray-100">
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse">
@@ -78,8 +77,8 @@
                                 @foreach($staffs as $staff)
                                 <td class="p-1 border-r border-gray-100 h-16 min-w-[140px] relative group">
                                     @if(isset($timeline[$slot][$staff->id]))
+                                    @foreach($timeline[$slot][$staff->id] as $res)
                                     @php
-                                    $res = $timeline[$slot][$staff->id];
                                     $dbStartTime = \Carbon\Carbon::parse($selectedDate . ' ' . $res->reservation_time);
                                     $slotTime = \Carbon\Carbon::parse($selectedDate . ' ' . $slot);
 
@@ -87,17 +86,16 @@
                                     $shouldShowButton = $dbStartTime->equalTo($slotTime) && $res->menus->isNotEmpty();
                                     @endphp
 
-                                    <div class="p-1 h-full flex flex-col justify-center border-l-2 relative transition-all duration-200
+                                    <div class="p-1 mb-1 border-l-2 relative transition-all duration-200
     {{ $staff->id == 0 || $staff->name == '指名なし' ? 'bg-red-50/50 border-red-400' : 'bg-white border-charcoal shadow-sm hover:shadow-md' }}">
 
-                                        {{-- 削除ボタン（デザイン調整版） --}}
+                                        {{-- 削除ボタン --}}
                                         @if($shouldShowButton)
                                         <div class="absolute -top-1 -right-1 z-[50]">
                                             <button type="button"
                                                 onclick="openDeleteModal('{{ $res->id }}')"
                                                 class="flex bg-red-500 text-white rounded-full w-5 h-5 text-[10px] items-center justify-center hover:bg-red-700 transition shadow-sm cursor-pointer border border-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <i class="fas fa-times"></i> {{-- FontAwesomeを使っているなら×印、なければそのまま × --}}
-                                                ×
+                                                <i class="fas fa-times"></i> ×
                                             </button>
                                         </div>
                                         @endif
@@ -107,24 +105,33 @@
                                             {{ $res->user->name }} <span class="text-[9px] font-normal text-gray-500">様</span>
                                         </p>
 
-                                        {{-- メニュー名（起点のみ表示してスッキリさせる） --}}
+                                        {{-- メニュー名 --}}
                                         @if($shouldShowButton && $res->menus->isNotEmpty())
                                         <p class="text-[9px] text-gray-400 mt-1 leading-tight truncate">
                                             {{ $res->menus->pluck('name')->implode(', ') }}
                                         </p>
                                         @endif
 
-                                        {{-- スタッフ割り当てボタン（指名なしの場合） --}}
+                                        {{-- スタッフ割り当てボタン --}}
+                                        @if($shouldShowButton)
+                                        {{-- 指名なしの場合 --}}
                                         @if($staff->id == 0 || $staff->name == '指名なし')
-                                        @if($shouldShowButton) {{-- これも起点だけでOKなら囲む --}}
                                         <button type="button"
                                             onclick="openModal({{ $res->id }})"
                                             class="mt-1 text-[8px] tracking-tighter text-red-500 font-bold border border-red-200 px-1 py-0.5 hover:bg-red-500 hover:text-white transition rounded-sm">
-                                            STAFF ASSIGN
+                                            ASSIGN STAFF
+                                        </button>
+                                        @else
+                                        {{-- すでに担当者が決まっている場合（変更用） --}}
+                                        <button type="button"
+                                            onclick="openModal({{ $res->id }})"
+                                            class="mt-1 text-[8px] tracking-tighter text-gray-400 font-normal border border-gray-200 px-1 py-0.5 hover:bg-black hover:text-white transition rounded-sm">
+                                            CHANGE
                                         </button>
                                         @endif
                                         @endif
                                     </div>
+                                    @endforeach
                                     @endif
                                 </td>
                                 @endforeach

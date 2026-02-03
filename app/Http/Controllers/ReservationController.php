@@ -78,9 +78,9 @@ class ReservationController extends Controller
 
         // 定休日・出勤人数のマップ
         $holidayMap = [
-            1 => [2, 3], //Hikaru
-            2 => [2, 1], //Yuki
-            3 => [2, 4], //Ken
+            1 => [2, 3], // Hikaru
+            2 => [2, 1], // Yuki
+            3 => [2, 4], // Ken
         ];
 
         // 期間中の各日付についてチェック
@@ -157,7 +157,7 @@ class ReservationController extends Controller
         $dayOfWeek = date('w', strtotime($request->reservation_date));
         $holidayMap = [
             1 => [2, 3], // Hikaru
-            2 => [2, 1], // Ami
+            2 => [2, 1], // YUki
             3 => [2, 4], // Ken
         ];
 
@@ -209,6 +209,9 @@ class ReservationController extends Controller
         // コマ数を計算 (30分単位で切り上げ)
         $frameCount = ceil($totalDuration / 30);
 
+        // ここで今の時間を固定
+        $now = now();
+
         for ($i = 0; $i < $frameCount; $i++) {
 
             $reservation = new Reservation();
@@ -217,8 +220,12 @@ class ReservationController extends Controller
             $reservation->reservation_date = $request->reservation_date;
             $startTime = strtotime($request->reservation_time);
             $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
+            $reservation->status = 'pending';
 
-            $reservation->status = 'pending'; // まずは「予約中」として保存
+            // 固定した時間を手動でセットする
+            $reservation->created_at = $now;
+            $reservation->updated_at = $now;
+
             $reservation->save();
 
             if ($i === 0) {

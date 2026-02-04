@@ -19,11 +19,33 @@ class AdminController extends Controller
 
         // 「指名なし」という架空のスタッフを手動で作成
         $noNominationStaff = new Staff();
-        $noNominationStaff->id = 0; //IDは0とする
+        $noNominationStaff->id = 0;
         $noNominationStaff->name = '指名なし';
 
         // 本物のスタッフリストの「後ろ」に指名なしを追加
         $staffs = $realStaffs->push($noNominationStaff);
+
+        // 曜日番号を取得 (0:日, 1:月, 2:火, 3:水, 4:木, 5:金, 6:土)
+        $dayOfWeek = date('w', strtotime($selectedDate));
+
+        // 定休日マップ
+        // ※0(指名なし)は火曜日を指定する
+        $holidayMap = [
+            0 => [2],
+            1 => [2, 3],
+            2 => [2, 1],
+            3 => [2, 4],
+        ];
+
+        // 各スタッフに「今日休み？」フラグをつける
+        foreach ($staffs as $staff) {
+            // IDが0の場合も含めて、マップにその曜日が含まれているかチェック
+            if (in_array($dayOfWeek, $holidayMap[$staff->id] ?? [])) {
+                $staff->is_holiday = true;
+            } else {
+                $staff->is_holiday = false;
+            }
+        }
 
         // 3. 予約データ取得
         $reservations = Reservation::with(['user', 'menus'])

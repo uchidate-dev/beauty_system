@@ -61,8 +61,14 @@
                                 <th class="p-4 text-[10px] text-gray-400 w-24 font-medium uppercase tracking-widest border-r border-gray-100">Time</th>
                                 @foreach($staffs as $staff)
                                 <th class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase
-                                    {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-400 bg-red-50/20 font-bold' : 'text-gray-600' }}">
+                                    {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-400 bg-red-50/20 font-bold' : '' }}
+                                    {{-- 休みの場合のデザイン(背景グレー＆文字薄く) --}}
+                                    {{  $staff->is_holiday ? 'bg-gray-200 text-gray-400' : 'text-gray-600' }}">
                                     {{ $staff->name }}
+                                    {{-- 休みならバッジを表示 --}}
+                                    @if($staff->is_holiday)
+                                    <span class="block text-[8px] bg-gray-500 text-white rounded px-1 py-0.5 mt-1 w-fit mx-auto">HOLIDAY</span>
+                                    @endif
                                 </th>
                                 @endforeach
                             </tr>
@@ -75,9 +81,12 @@
                                 </td>
 
                                 @foreach($staffs as $staff)
-                                <td class="p-1 border-r border-gray-100 h-16 min-w-[140px] relative group">
+                                <td class="p-1 border-r border-gray-100 h-16 min-w-[140px] relative group align-top
+                                    {{ $staff->is_holiday ? 'bg-gray-100/50' : '' }}">
+
                                     @if(isset($timeline[$slot][$staff->id]))
                                     @foreach($timeline[$slot][$staff->id] as $res)
+
                                     @php
                                     $dbStartTime = \Carbon\Carbon::parse($selectedDate . ' ' . $res->reservation_time);
                                     $slotTime = \Carbon\Carbon::parse($selectedDate . ' ' . $slot);
@@ -95,7 +104,7 @@
                                             <button type="button"
                                                 onclick="openDeleteModal('{{ $res->id }}')"
                                                 class="flex bg-red-500 text-white rounded-full w-5 h-5 text-[10px] items-center justify-center hover:bg-red-700 transition shadow-sm cursor-pointer border border-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <i class="fas fa-times"></i> ×
+                                                ×
                                             </button>
                                         </div>
                                         @endif

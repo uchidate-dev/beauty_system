@@ -183,8 +183,8 @@ class AdminController extends Controller
 
         // メニュー紐づけ（配列できたIDを保存）
         $reservation->menus()->attach($request->menu_ids);
-        
-        return back()->with('success', '電話予約を登録しました')
+
+        return back()->with('success', '電話予約を登録しました');
     }
 
     public function assign(Request $request, $id)

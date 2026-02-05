@@ -58,7 +58,31 @@
             </div>
 
             {{-- 売上分析チャート表示エリア --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div x-data="{ show: true }" class="mb-8">
+
+                {{-- 見出し＆開閉ボタン --}}
+                <div class="flex justify-between items-center mb-4 cursor-pointer select-none group" @click="show = !show">
+                    <h3 class="text-sm font-bold text-gray-700 tracking-widest uppercase flex items-center gap-2 group-hover:text-black transition">
+                        {{-- プラスマイナスアイコン --}}
+                        <span class="bg-gray-200 group-hover:bg-black group-hover:text-white text-gray-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] transition"
+                            x-text="show ? '-' : '+'"></span>
+                        Analytics / 売上分析
+                    </h3>
+                    <button class="text-[10px] text-gray-400 hover:text-black border-b border-dashed border-gray-300 transition">
+                        <span x-text="show ? 'Hide Charts / 閉じる' : 'Show Charts / 表示する'"></span>
+                    </button>
+                </div>
+
+                {{-- グラフ本体（x-showで出し入れする） --}}
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform scale-95"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-95"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                </div>
 
                 {{-- 月別売上グラフ --}}
                 <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
@@ -92,7 +116,7 @@
                                 <th class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase
                                     {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-400 bg-red-50/20 font-bold' : '' }}
                                     {{-- 休みの場合のデザイン(背景グレー＆文字薄く) --}}
-                                    {{  $staff->is_holiday ? 'bg-gray-200 text-gray-400' : 'text-gray-600' }}">
+                                    {{ $staff->is_holiday ? 'bg-gray-200 text-gray-400' : 'text-gray-600' }}">
                                     {{ $staff->name }}
                                     {{-- 休みならバッジを表示 --}}
                                     @if($staff->is_holiday)
@@ -232,7 +256,7 @@
 
     {{-- 電話予約登録用モーダル --}}
     <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-light tracking-widest uppercase mb-6">New Reservation (Phone)</h3>
 
             <form action="{{ route('admin.reservations.store') }}" method="POST">
@@ -256,12 +280,15 @@
 
                 {{-- メニュー --}}
                 <div class="mb-4">
-                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Menu</label>
-                    <select name="menu_id" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Menu (Multiple Select)</label>
+                    <div class="border border-gray-200 p-3 h-40 overflow-y-auto bg-gray-50 rounded-sm">
                         @foreach(\App\Models\Menu::all() as $menu)
-                        <option value="{{ $menu->id }}">{{ $menu->name }}</option>
+                        <label class="flex items-center space-x-3 mb-2 cursor-pointer hover:bg-white p-1 transition">
+                            <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="text-black focus:ring-black border-gray-300 rounded-sm">
+                            <span class="text-sm text-gray-700">{{ $menu->name }} <span class="text-xs text-gray-400">(¥{{ number_format($menu->price) }})</span></span>
+                        </label>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
 
                 {{-- スタッフ --}}

@@ -34,6 +34,11 @@
                     <button type="submit" class="bg-black text-white px-8 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-800 transition duration-300">
                         Search / 表示切替
                     </button>
+
+                    {{-- 電話予約ボタン --}}
+                    <button type="button" onclick="openCreateModal()" class="bg-white text-black border border-black px-6 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-100 transition duration-300">
+                        + Phone / 電話予約
+                    </button>
                 </form>
 
                 <div class="text-right flex items-end gap-8">
@@ -48,6 +53,30 @@
                         <h3 class="text-lg font-light tracking-[0.1em] text-gray-800">
                             {{ \Carbon\Carbon::parse($selectedDate)->format('Y.m.d') }}
                         </h3>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 売上分析チャート表示エリア --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+                {{-- 月別売上グラフ --}}
+                <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                        Monthly Sales / {{ $currentYear }}年
+                    </h4>
+                    <div class="h-64">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+
+                {{-- スタッフ別売上グラフ --}}
+                <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                        Staff Performance / スタッフ別指名売上
+                    </h4>
+                    <div class="h-64">
+                        <canvas id="staffChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -201,7 +230,72 @@
         </div>
     </div>
 
+    {{-- 電話予約登録用モーダル --}}
+    <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+            <h3 class="text-lg font-light tracking-widest uppercase mb-6">New Reservation (Phone)</h3>
+
+            <form action="{{ route('admin.reservations.store') }}" method="POST">
+                @csrf
+
+                {{-- 日付（現在選択中の日付を初期化にする） --}}
+                <div class="mb-4">
+                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Date</label>
+                    <input type="date" name="reservation_date" value="{{ $selectedDate }}" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                </div>
+
+                {{-- 時間 --}}
+                <div class="mb-4">
+                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Time</label>
+                    <select name="reservation_time" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                        @foreach($timeSlots as $slot)
+                        <option value="{{ $slot }}">{{ $slot }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- メニュー --}}
+                <div class="mb-4">
+                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Menu</label>
+                    <select name="menu_id" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                        @foreach(\App\Models\Menu::all() as $menu)
+                        <option value="{{ $menu->id }}">{{ $menu->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- スタッフ --}}
+                <div class="mb-6">
+                    <label class="block text-[10px] text-gray-400 uppercase mb-2">Staff</label>
+                    <select name="staff_id" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                        <option value="0">指名なし (Any Staff)</option>
+                        @foreach($staffs as $s)
+                        @if($s->id !== 0)
+                        <option value="{{ $s->id }}">{{ $s->name }}</option>
+                        @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-4">
+                    <button type="button" onclick="closeCreateModal()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition">Cancel</button>
+                    <button type="submit" class="bg-black text-white px-6 py-2 text-[10px] tracking-widest uppercase hover:bg-gray-800 transition">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        function openCreateModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
+        }
+
         function openModal(reservationId) {
             document.getElementById('modal_reservation_id').value = reservationId;
             document.getElementById('assignForm').action = "/admin/reservations/" + reservationId + "/assign";
@@ -221,5 +315,89 @@
         function closeDeleteModal() {
             document.getElementById('deleteConfirmModal').classList.add('hidden');
         }
+
+        //グラフ
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 月別売上グラフ(棒グラフ)
+            const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctxMonthly, {
+                type: 'bar',
+                data: {
+                    labels: @json($monthlyLabels).map(m => m + '月'),
+                    datasets: [{
+                        label: '売上 (円)',
+                        data: @json($monthlyValues),
+                        backgroundColor: 'rgba(50, 50, 50, 0.8)',
+                        borderColor: 'rgba(50, 50, 50, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f3f4f6'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // ② スタッフ別売上グラフ（ドーナツグラフ）
+            const ctxStaff = document.getElementById('staffChart').getContext('2d');
+            new Chart(ctxStaff, {
+                type: 'doughnut',
+                data: {
+                    labels: @json($staffLabels),
+                    datasets: [{
+                        data: @json($staffValues),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#C9CBCF'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 10
+                                },
+                                boxWidth: 10
+                            }
+                        }
+                    }
+                }
+            });
+        });
     </script>
 </x-app-layout>

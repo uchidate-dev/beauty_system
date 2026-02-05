@@ -47,15 +47,24 @@ Route::get('/booking-gate', function () {
     return view('auth.booking-gate');
 })->name('booking.gate');
 
-// 管理者(admin)のみが入れるルートグループ
+// ====================================================
+// 管理者(admin)専用のルートグループ
+// ====================================================
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
+
+    // ダッシュボード表示
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+
+    // 電話予約（管理者が主導で予約作成）
+    // URLは自動的に /admin/reservations になる
+    Route::post('/reservations', [AdminController::class, 'store'])->name('admin.reservations.store');
+
+    // スタッフのアサイン（担当者割り当て）
+    Route::patch('/reservations/{id}/assign', [AdminController::class, 'assign'])->name('admin.reservations.assign');
+
+    // 予約キャンセル（管理者権限で削除）
+    Route::delete('/reservations/{id}', [AdminController::class, 'destroy'])->name('admin.reservations.destroy');
+    
 });
-
-// routes/web.php に追記（AdminControllerのグループ内など）
-Route::patch('/admin/reservations/{id}/assign', [App\Http\Controllers\AdminController::class, 'assign'])->name('admin.reservations.assign');
-
-// adminが行う予約キャンセルボタン
-Route::delete('/admin/reservations/{id}', [App\Http\Controllers\AdminController::class, 'destroy'])->name('admin.reservations.destroy');
 
 require __DIR__ . '/auth.php';

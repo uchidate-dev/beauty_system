@@ -6,6 +6,7 @@ use App\Models\Staff;
 use App\Models\Menu;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -146,18 +147,24 @@ class ReservationController extends Controller
 
         // 送られてきたデータのバリデーション（チェック）
         $request->validate([
-            'staff_id' => 'required',
-            'menu_ids' => 'required|array',
             'reservation_date' => 'required|date',
             'reservation_time' => 'required',
+            'menu_ids' => 'required|array',
+            'staff_id' => 'required',
+
         ]);
 
-        // 全体キャパシティ（その日の出勤スタッフ数）チェック
+        // 指名判定ロジック
+        // staff_id が "0"でなければ「true(指名あり)」
+        // staff_id が "0" なら「false (指名なし)」
+        $isNominated = $request->staff_id != 0;
 
+
+        // 全体キャパシティ（その日の出勤スタッフ数）チェック
         $dayOfWeek = date('w', strtotime($request->reservation_date));
         $holidayMap = [
             1 => [2, 3], // Hikaru
-            2 => [2, 1], // YUki
+            2 => [2, 1], // Yuki
             3 => [2, 4], // Ken
         ];
 
@@ -171,6 +178,7 @@ class ReservationController extends Controller
 
         // お店の最大予約可能枠数（= 出勤スタッフ数）
         $maxCapacity = count($activeStaffIds);
+
         // その時間の「現在の予約総数」をカウント（指名・指名なし合算）
         $currentReservationsCount = Reservation::where('reservation_date', $request->reservation_date)
             ->where('reservation_time', $request->reservation_time)
@@ -218,10 +226,15 @@ class ReservationController extends Controller
             $reservation->user_id = auth()->id();
             $reservation->staff_id = $dbStaffId;
             $reservation->reservation_date = $request->reservation_date;
+
+            // 時間を30分ずつずらす 
             $startTime = strtotime($request->reservation_time);
             $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
+
             $reservation->status = 'pending';
 
+            // 指名フラグをセット
+            $reservation->is_nominated = $isNominated;
             // 固定した時間を手動でセットする
             $reservation->created_at = $now;
             $reservation->updated_at = $now;
@@ -286,7 +299,7 @@ class ReservationController extends Controller
             ->where('staff_id', $reservation->staff_id)
             ->where('reservation_date', $reservation->reservation_date)
             ->where('reservation_time', '>=', $reservation->reservation_time)
-            ->delete(); // メインもダミーもまとめて一気に削除！
+            ->delete(); // メインもダミーも一気に削除
 
         return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }

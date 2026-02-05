@@ -85,13 +85,106 @@ class AdminController extends Controller
             $timeSlots[] = date('H:i', $t);
         }
 
+        // 売上チャート用のデータ計算
+
+        // 今年の予約をすべて持ってくる
+        $currentYear = date('Y');
+
+        $yearlyReservations = Reservation::with(['menus', 'staff'])
+            ->whereYear('reservation_date', $currentYear)
+            ->get();
+
+        // 月別売上の集計
+        $monthlySales = array_fill(1, 12, 0);
+        $processedIdsForChart = [];
+
+        foreach ($yearlyReservations as $res) {
+            if (!in_array($res->id, $processedIdsForChart)) {
+                $month = (int)date('m', strtotime($res->reservation_date));
+                $sales = $res->menus->sum('price');
+                $monthlySales[$month] += $sales;
+                $processedIdsForChart[] = $res->id;
+            }
+        }
+
+        // スタッフ別売上集計
+        $staffSales = [];
+        foreach ($staffs as $s) {
+            $staffSales[$s->name] = 0;
+        }
+        $processedIdsForStaffChart = [];
+
+        foreach ($yearlyReservations as $res) {
+            if (!in_array($res->id, $processedIdsForStaffChart)) {
+                $sales = $res->menus->sum('price');
+                $staffName = $res->staff ? $res->staff->name : '指名なし';
+
+                if (isset($staffSales[$staffName])) {
+                    $staffSales[$staffName] += $sales;
+                } else {
+                    $staffSales[$staffName] = $sales;
+                }
+                $processedIdsForStaffChart[] = $res->id;
+            }
+        }
+
+        // グラフ用データ整形
+        $monthlyLabels = array_keys($monthlySales);
+        $monthlyValues = array_values($monthlySales);
+        $staffLabels = array_keys($staffSales);
+        $staffValues = array_values($staffSales);
+
         return view('admin.dashboard', compact(
             'timeline',
             'timeSlots',
             'staffs',
             'selectedDate',
-            'todayTotal'
+            'todayTotal',
+            'monthlyLabels',
+            'monthlyValues',
+            'staffLabels',
+            'staffValues',
+            'currentYear'
         ));
+    }
+
+    // 電話予約を保存するメソッド（複数メニュー対応）
+    public function store(Request $request)
+    {
+        // バリデーション
+        $request->validate([
+            'reservation_date' => 'required|date',
+            'reservation_time' => 'required',
+            'menu_ids' => 'required|array', // 配列で受け取る
+            'staff_id' => 'required',
+        ]);
+
+        // 「電話予約用ユーザー」のIDを取得
+        // 事前にユーザー登録が必要:email =  phone@phone
+        $phoneUser = \App\Models\User::where('email', 'phone@phone')->first();
+
+        if (!$phoneUser) {
+            return back()->with('error', '電話予約用のユーザーが見つかりません。「phpne@phpne」で会員登してください。');
+        }
+
+        // 指名判定
+        $isNominated = $request->staff_id != 0;
+        // 0(指名なし)ならnull、それ以外ならID
+        $dbStaffId = ($request->staff_id == 0) ? null : $request->staff_id;
+
+        // 予約作成
+        $reservation = Reservation::create([
+            'user_id' => $phoneUser->id,
+            'reservation_date' => $request->reservation_date,
+            'reservation_time' => $request->reservation_time,
+            'staff_id' => $dbStaffId,
+            'is_nominated' => $isNominated,
+        ]);
+
+        // メニュー紐づけ（配列できたIDを保存）
+        $reservation->menus()->attach($request->menu_ids);
+        
+        return back()->with('success', '電話予約を登録しました')
     }
 
     public function assign(Request $request, $id)

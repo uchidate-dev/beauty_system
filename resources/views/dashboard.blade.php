@@ -23,7 +23,7 @@
                     </a>
                 </div>
 
-                {{-- 未来の予約session --}}
+                {{-- 未来の予約 --}}
                 @if($upcomingReservations->isEmpty())
                 <p class="text-gray-400 text-sm text-center py-8">現在、予定されている予約はありません。</p>
                 @else
@@ -38,9 +38,18 @@
                                     ({{ ['日', '月', '火', '水', '木', '金', '土'][\Carbon\Carbon::parse($reservation->reservation_date)->dayOfWeek] }})
                                     {{ substr($reservation->reservation_time, 0, 5) }}
                                 </p>
+
+                                {{-- 指名フラグによる表示切替 --}}
                                 <p class="text-lg font-medium text-gray-800 tracking-widest">
-                                    {{ $reservation->staff->name ?? '指名なし' }}
+                                    @if($reservation->is_nominated && $reservation->staff)
+                                        {{-- 指名ありならスタッフ名を表示 --}}
+                                        {{ $reservation->staff->name }}
+                                    @else
+                                        {{-- 指名なし（またはスタッフ未定）なら「指名なし」を表示 --}}
+                                        指名なし
+                                    @endif
                                 </p>
+                                
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($reservation->menus as $menu)
                                     <span class="text-[10px] bg-gray-50 text-gray-500 px-2 py-1 rounded">{{ $menu->name }}</span>

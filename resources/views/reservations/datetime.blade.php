@@ -72,7 +72,7 @@
                     </h1>
                 </div>
 
-                {{-- メニュー：視認性アップ版 --}}
+                {{-- メニュー --}}
                 <div class="text-left md:text-right">
                     <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.5em] mb-2">Service Menu</p>
                     <div class="flex flex-wrap md:justify-end gap-2">

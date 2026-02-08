@@ -10,7 +10,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// ✅ ここを修正！Controllerを通すようにします
+// Controllerを通す
 Route::get('/dashboard', [ReservationController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -21,7 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 予約関連（グループの中にまとめるとスッキリします）
+    // 予約関連
     Route::get('/reserve', [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reserve/datetime', [ReservationController::class, 'showDateTime'])->name('reservations.datetime');
     Route::post('/reserve/store', [ReservationController::class, 'store'])->name('reservations.store');
@@ -64,7 +64,6 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
 
     // 予約キャンセル（管理者権限で削除）
     Route::delete('/reservations/{id}', [AdminController::class, 'destroy'])->name('admin.reservations.destroy');
-    
 });
 
 require __DIR__ . '/auth.php';

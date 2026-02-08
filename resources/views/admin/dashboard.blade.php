@@ -60,47 +60,52 @@
             {{-- 売上分析チャート表示エリア --}}
             <div x-data="{ show: true }" class="mb-8">
 
-                {{-- 見出し＆開閉ボタン --}}
-                <div class="flex justify-between items-center mb-4 cursor-pointer select-none group" @click="show = !show">
-                    <h3 class="text-sm font-bold text-gray-700 tracking-widest uppercase flex items-center gap-2 group-hover:text-black transition">
-                        {{-- プラスマイナスアイコン --}}
-                        <span class="bg-gray-200 group-hover:bg-black group-hover:text-white text-gray-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] transition"
-                            x-text="show ? '-' : '+'"></span>
+                {{-- 見出し（ここをクリックすると開閉します） --}}
+                <div class="flex items-center mb-4 cursor-pointer select-none group w-fit" @click="show = !show">
+                    {{-- アイコン（回転します） --}}
+                    <div class="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center mr-3 transition-transform duration-300 shadow-md"
+                        :class="show ? 'rotate-0' : '-rotate-90'">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+
+                    {{-- タイトル --}}
+                    <h3 class="text-sm font-bold text-gray-700 tracking-widest uppercase group-hover:text-black transition">
                         Analytics / 売上分析
                     </h3>
-                    <button class="text-[10px] text-gray-400 hover:text-black border-b border-dashed border-gray-300 transition">
-                        <span x-text="show ? 'Hide Charts / 閉じる' : 'Show Charts / 表示する'"></span>
-                    </button>
                 </div>
 
                 {{-- グラフ本体（x-showで出し入れする） --}}
                 <div x-show="show"
                     x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform scale-95"
-                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:enter-start="opacity-0 transform -translate-y-2"
+                    x-transition:enter-end="opacity-100 transform translate-y-0"
                     x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-95"
-                    class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                </div>
+                    x-transition:leave-start="opacity-100 transform translate-y-0"
+                    x-transition:leave-end="opacity-0 transform -translate-y-2">
 
-                {{-- 月別売上グラフ --}}
-                <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-                        Monthly Sales / {{ $currentYear }}年
-                    </h4>
-                    <div class="h-64">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
-                </div>
+                    {{-- ここで横並びを指定 --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {{-- ① 月別売上グラフ --}}
+                        <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                Monthly Sales / {{ $currentYear }}年
+                            </h4>
+                            <div class="h-64">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
 
-                {{-- スタッフ別売上グラフ --}}
-                <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-                        Staff Performance / スタッフ別指名売上
-                    </h4>
-                    <div class="h-64">
-                        <canvas id="staffChart"></canvas>
+                        {{-- ② スタッフ別売上グラフ --}}
+                        <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                Staff Performance / スタッフ別指名売上
+                            </h4>
+                            <div class="h-64">
+                                <canvas id="staffChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

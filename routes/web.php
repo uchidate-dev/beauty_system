@@ -66,4 +66,6 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
     Route::delete('/reservations/{id}', [AdminController::class, 'destroy'])->name('admin.reservations.destroy');
 });
 
+
+
 require __DIR__ . '/auth.php';

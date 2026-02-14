@@ -110,7 +110,7 @@ class ReservationController extends Controller
                         $isFull = true;
                     }
 
-                    // 【条件B】指名したスタッフが埋まっているか？                
+                    // 【条件B】指名したスタッフが埋まっているか？
                     if ($staffId != 0 && !$isFull) {
                         // そのスタッフ個人の予約数をチェック
                         $myCount = $staffUsage[$staffId][$dateStr][$time] ?? 0;
@@ -227,7 +227,7 @@ class ReservationController extends Controller
             $reservation->staff_id = $dbStaffId;
             $reservation->reservation_date = $request->reservation_date;
 
-            // 時間を30分ずつずらす 
+            // 時間を30分ずつずらす
             $startTime = strtotime($request->reservation_time);
             $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
 
@@ -304,3 +304,4 @@ class ReservationController extends Controller
         return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }
 }
+

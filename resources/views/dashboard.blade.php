@@ -49,7 +49,7 @@
                                         指名なし
                                     @endif
                                 </p>
-                                
+
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($reservation->menus as $menu)
                                     <span class="text-[10px] bg-gray-50 text-gray-500 px-2 py-1 rounded">{{ $menu->name }}</span>

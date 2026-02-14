@@ -12,10 +12,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // スタッフ、メニュー情報をDBへ流す
+        // スタッフ、メニュー、そしてユーザー情報をDBへ流す
         $this->call([
             StaffSeeder::class,
             MenuSeeder::class,
+            UserSeeder::class, 
         ]);
     }
 }

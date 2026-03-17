@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
@@ -259,7 +260,10 @@ class ReservationController extends Controller
         // 現在の「日時」を取得（例：2026-02-01 10：30：00）
         $now = now();
 
-        $all = auth()->user()->reservations()
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $all = $user->reservations()
             ->with(['staff', 'menus'])
             ->has('menus')
             ->orderBy('reservation_date', 'desc')
@@ -292,7 +296,17 @@ class ReservationController extends Controller
         if ($reservation->user_id !== auth()->id()) {
             abort(403);
         }
+        //  キャンセル期限のチェック(前日の23:59まで)
+        $reservationDate = \Carbon\Carbon::parse($reservation->reservation_date);
+        $deadline = $reservationDate->copy()->subDay()->endOfDay(); // 前日の23:59:59を計算
 
+        // 現在時刻が期限を過ぎている場合はエラーメッセージを出してダッシュボードに戻す
+        if (now()->greaterThan($deadline)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'キャンセル期限（前日の23:59）を過ぎているため、キャンセルできません。お手数ですが店舗へ直接ご連絡ください。');
+        }
+
+        // 予約の削除処理(期限内の場合のみここが実行される)
         // 「同じ日、同じスタッフ、同じユーザー」で、
         // 「メインの予約（自分）以降の時間」にある予約（ダミーコマ含む）をまとめて消す
         Reservation::where('user_id', $reservation->user_id)
@@ -304,4 +318,3 @@ class ReservationController extends Controller
         return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }
 }
-

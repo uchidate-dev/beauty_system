@@ -40,12 +40,12 @@
                 {{-- 02. Select Stylist --}}
                 <h3 class="text-sm font-bold mb-8 tracking-widest text-gray-400 uppercase">02. Select Stylist</h3>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-20">
+                <div x-data="{ selectedStaff: null }" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-20">
 
-                    {{-- 1. ANY STAFF (指名なし) - これは固定 --}}
+                    {{-- 1. ANY STAFF (指名なし) --}}
                     <label class="group relative cursor-pointer text-center">
-                        <input type="radio" name="staff_id" value="0" class="hidden peer" required>
-                        <div class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 transition-all duration-300 bg-black text-white flex items-center justify-center 
+                        <input type="radio" name="staff_id" value="0" x-model="selectedStaff" class="hidden peer" required>
+                        <div class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 transition-all duration-300 bg-black text-white flex items-center justify-center
             group-hover:ring-2 group-hover:ring-black group-hover:ring-offset-2
             peer-checked:bg-gray-700 peer-checked:ring-2 peer-checked:ring-black peer-checked:ring-offset-2 shadow-md">
                             <span class="text-[9px] tracking-[0.2em] font-light">ANY STAFF</span>
@@ -57,7 +57,7 @@
                     {{-- 2. メインスタイリスト (ID: 1, 2, 3) のループ --}}
                     @foreach($staffs as $staff)
                     <label class="group relative cursor-pointer text-center block">
-                        <input type="radio" name="staff_id" value="{{ $staff->id }}" class="hidden peer" required>
+                        <input type="radio" name="staff_id" value="{{ $staff->id }}" x-model="selectedStaff" class="hidden peer" required>
 
                         <div class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full border border-gray-100 transition-all duration-700
                     group-hover:ring-1 group-hover:ring-black group-hover:ring-offset-4
@@ -65,8 +65,8 @@
 
                             <img src="{{ asset('images/staff' . $staff->id . '.png') }}"
                                 alt="{{ $staff->name }}"
-                                id="img-staff-{{ $staff->id }}"
-                                class="js-staff-image w-full h-full object-cover transition-all duration-1000 grayscale group-hover:grayscale-0">
+                                :class="selectedStaff == '{{ $staff->id }}' ? 'grayscale-0' : 'grayscale'"
+                                class="w-full h-full object-cover transition-all duration-1000 group-hover:grayscale-0">
                         </div>
 
                         <p class="text-sm md:text-base font-medium text-gray-400 tracking-[0.1em] transition-all duration-500
@@ -104,32 +104,4 @@
             </form>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const radioButtons = document.querySelectorAll('input[name="staff_id"]');
-            const allImages = document.querySelectorAll('.js-staff-image');
-
-            function updateColors() {
-                allImages.forEach(img => {
-                    img.classList.remove('grayscale-0');
-                    img.classList.add('grayscale');
-                });
-
-                const selected = document.querySelector('input[name="staff_id"]:checked');
-                if (selected && selected.value !== "0") {
-                    const targetImg = document.getElementById('img-staff-' + selected.value);
-                    if (targetImg) {
-                        targetImg.classList.remove('grayscale');
-                        targetImg.classList.add('grayscale-0');
-                    }
-                }
-            }
-
-            radioButtons.forEach(radio => {
-                radio.addEventListener('change', updateColors);
-            });
-            updateColors();
-        });
-    </script>
 </x-app-layout>

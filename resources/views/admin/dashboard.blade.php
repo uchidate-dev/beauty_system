@@ -9,21 +9,26 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             @if (session('success'))
-            <div id="success-message" class="mb-6 p-4 bg-white border-l-4 border-black shadow-sm flex items-center justify-between animate-fade-in-down">
-                <div class="flex items-center">
-                    <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <p class="text-[10px] tracking-[0.2em] uppercase font-medium text-gray-800">
-                        {{ session('success') }}
-                    </p>
+                <div id="success-message"
+                    class="mb-6 p-4 bg-white border-l-4 border-black shadow-sm flex items-center justify-between animate-fade-in-down">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        <p class="text-[10px] tracking-[0.2em] uppercase font-medium text-gray-800">
+                            {{ session('success') }}
+                        </p>
+                    </div>
+                    <button onclick="document.getElementById('success-message').remove()"
+                        class="text-gray-400 hover:text-black transition">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z">
+                            </path>
+                        </svg>
+                    </button>
                 </div>
-                <button onclick="document.getElementById('success-message').remove()" class="text-gray-400 hover:text-black transition">
-                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"></path>
-                    </svg>
-                </button>
-            </div>
             @endif
 
             {{-- 日付選択エリア --}}
@@ -31,12 +36,14 @@
                 <form action="{{ route('admin.dashboard') }}" method="GET" class="flex items-center gap-4">
                     <input type="date" name="date" value="{{ $selectedDate }}"
                         class="border-gray-200 focus:border-black focus:ring-0 text-sm py-2">
-                    <button type="submit" class="bg-black text-white px-8 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-800 transition duration-300">
+                    <button type="submit"
+                        class="bg-black text-white px-8 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-800 transition duration-300">
                         Search / 表示切替
                     </button>
 
                     {{-- 電話予約ボタン --}}
-                    <button type="button" onclick="openCreateModal()" class="bg-white text-black border border-black px-6 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-100 transition duration-300">
+                    <button type="button" onclick="openCreateModal()"
+                        class="bg-white text-black border border-black px-6 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-100 transition duration-300">
                         + Phone / 電話予約
                     </button>
                 </form>
@@ -66,19 +73,20 @@
                     <div class="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center mr-3 transition-transform duration-300 shadow-md"
                         :class="show ? 'rotate-0' : '-rotate-90'">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
                         </svg>
                     </div>
 
                     {{-- タイトル --}}
-                    <h3 class="text-sm font-bold text-gray-700 tracking-widest uppercase group-hover:text-black transition">
+                    <h3
+                        class="text-sm font-bold text-gray-700 tracking-widest uppercase group-hover:text-black transition">
                         Analytics / 売上分析
                     </h3>
                 </div>
 
                 {{-- グラフ本体（x-showで出し入れする） --}}
-                <div x-show="show"
-                    x-transition:enter="transition ease-out duration-300"
+                <div x-show="show" x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform -translate-y-2"
                     x-transition:enter-end="opacity-100 transform translate-y-0"
                     x-transition:leave="transition ease-in duration-200"
@@ -116,93 +124,106 @@
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="bg-gray-50/50 border-b border-gray-100">
-                                <th class="p-4 text-[10px] text-gray-400 w-24 font-medium uppercase tracking-widest border-r border-gray-100">Time</th>
-                                @foreach($staffs as $staff)
-                                <th class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase
+                                <th
+                                    class="p-4 text-[10px] text-gray-400 w-24 font-medium uppercase tracking-widest border-r border-gray-100">
+                                    Time</th>
+                                @foreach ($staffs as $staff)
+                                    <th
+                                        class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase
                                     {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-400 bg-red-50/20 font-bold' : '' }}
                                     {{-- 休みの場合のデザイン(背景グレー＆文字薄く) --}}
                                     {{ $staff->is_holiday ? 'bg-gray-200 text-gray-400' : 'text-gray-600' }}">
-                                    {{ $staff->name }}
-                                    {{-- 休みならバッジを表示 --}}
-                                    @if($staff->is_holiday)
-                                    <span class="block text-[8px] bg-gray-500 text-white rounded px-1 py-0.5 mt-1 w-fit mx-auto">HOLIDAY</span>
-                                    @endif
-                                </th>
+                                        {{ $staff->name }}
+                                        {{-- 休みならバッジを表示 --}}
+                                        @if ($staff->is_holiday)
+                                            <span
+                                                class="block text-[8px] bg-gray-500 text-white rounded px-1 py-0.5 mt-1 w-fit mx-auto">HOLIDAY</span>
+                                        @endif
+                                    </th>
                                 @endforeach
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($timeSlots as $slot)
-                            <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
-                                <td class="p-3 text-center text-[11px] text-gray-400 bg-gray-50/20 border-r border-gray-100">
-                                    {{ $slot }}
-                                </td>
+                            @foreach ($timeSlots as $slot)
+                                <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
+                                    <td
+                                        class="p-3 text-center text-[11px] text-gray-400 bg-gray-50/20 border-r border-gray-100">
+                                        {{ $slot }}
+                                    </td>
 
-                                @foreach($staffs as $staff)
-                                <td class="p-1 border-r border-gray-100 h-16 min-w-[140px] relative group align-top
+                                    @foreach ($staffs as $staff)
+                                        <td
+                                            class="p-1 border-r border-gray-100 h-16 min-w-[140px] relative group align-top
                                     {{ $staff->is_holiday ? 'bg-gray-100/50' : '' }}">
 
-                                    @if(isset($timeline[$slot][$staff->id]))
-                                    @foreach($timeline[$slot][$staff->id] as $res)
+                                            @if (isset($timeline[$slot][$staff->id]))
+                                                @foreach ($timeline[$slot][$staff->id] as $res)
+                                                    @php
+                                                        $dbStartTime = \Carbon\Carbon::parse(
+                                                            $selectedDate . ' ' . $res->reservation_time,
+                                                        );
+                                                        $slotTime = \Carbon\Carbon::parse($selectedDate . ' ' . $slot);
 
-                                    @php
-                                    $dbStartTime = \Carbon\Carbon::parse($selectedDate . ' ' . $res->reservation_time);
-                                    $slotTime = \Carbon\Carbon::parse($selectedDate . ' ' . $slot);
+                                                        // 【判定】時間が一致し、かつメニュー情報を持っている（予約の起点）場合のみボタンを出す
+                                                        $shouldShowButton =
+                                                            $dbStartTime->equalTo($slotTime) &&
+                                                            $res->menus->isNotEmpty();
+                                                    @endphp
 
-                                    // 【判定】時間が一致し、かつメニュー情報を持っている（予約の起点）場合のみボタンを出す
-                                    $shouldShowButton = $dbStartTime->equalTo($slotTime) && $res->menus->isNotEmpty();
-                                    @endphp
-
-                                    <div class="p-1 mb-1 border-l-2 relative transition-all duration-200
+                                                    <div
+                                                        class="p-1 mb-1 border-l-2 relative transition-all duration-200
     {{ $staff->id == 0 || $staff->name == '指名なし' ? 'bg-red-50/50 border-red-400' : 'bg-white border-charcoal shadow-sm hover:shadow-md' }}">
 
-                                        {{-- 削除ボタン --}}
-                                        @if($shouldShowButton)
-                                        <div class="absolute -top-1 -right-1 z-[50]">
-                                            <button type="button"
-                                                onclick="openDeleteModal('{{ $res->id }}')"
-                                                class="flex bg-red-500 text-white rounded-full w-5 h-5 text-[10px] items-center justify-center hover:bg-red-700 transition shadow-sm cursor-pointer border border-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                                ×
-                                            </button>
-                                        </div>
-                                        @endif
+                                                        {{-- 削除ボタン --}}
+                                                        @if ($shouldShowButton)
+                                                            <div class="absolute -top-1 -right-1 z-[50]">
+                                                                <button type="button"
+                                                                    onclick="openDeleteModal('{{ $res->id }}')"
+                                                                    class="flex bg-red-500 text-white rounded-full w-5 h-5 text-[10px] items-center justify-center hover:bg-red-700 transition shadow-sm cursor-pointer border border-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    ×
+                                                                </button>
+                                                            </div>
+                                                        @endif
 
-                                        {{-- 顧客名 --}}
-                                        <p class="text-[11px] font-bold leading-none {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-900' : 'text-gray-800' }}">
-                                            {{ $res->user->name }} <span class="text-[9px] font-normal text-gray-500">様</span>
-                                        </p>
+                                                        {{-- 顧客名 --}}
+                                                        <p
+                                                            class="text-[11px] font-bold leading-none {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-900' : 'text-gray-800' }}">
+                                                            {{ $res->user->name }} <span
+                                                                class="text-[9px] font-normal text-gray-500">様</span>
+                                                        </p>
 
-                                        {{-- メニュー名 --}}
-                                        @if($shouldShowButton && $res->menus->isNotEmpty())
-                                        <p class="text-[9px] text-gray-400 mt-1 leading-tight truncate">
-                                            {{ $res->menus->pluck('name')->implode(', ') }}
-                                        </p>
-                                        @endif
+                                                        {{-- メニュー名 --}}
+                                                        @if ($shouldShowButton && $res->menus->isNotEmpty())
+                                                            <p
+                                                                class="text-[9px] text-gray-400 mt-1 leading-tight truncate">
+                                                                {{ $res->menus->pluck('name')->implode(', ') }}
+                                                            </p>
+                                                        @endif
 
-                                        {{-- スタッフ割り当てボタン --}}
-                                        @if($shouldShowButton)
-                                        {{-- 指名なしの場合 --}}
-                                        @if($staff->id == 0 || $staff->name == '指名なし')
-                                        <button type="button"
-                                            onclick="openModal({{ $res->id }})"
-                                            class="mt-1 text-[8px] tracking-tighter text-red-500 font-bold border border-red-200 px-1 py-0.5 hover:bg-red-500 hover:text-white transition rounded-sm">
-                                            ASSIGN STAFF
-                                        </button>
-                                        @else
-                                        {{-- すでに担当者が決まっている場合（変更用） --}}
-                                        <button type="button"
-                                            onclick="openModal({{ $res->id }})"
-                                            class="mt-1 text-[8px] tracking-tighter text-gray-400 font-normal border border-gray-200 px-1 py-0.5 hover:bg-black hover:text-white transition rounded-sm">
-                                            CHANGE
-                                        </button>
-                                        @endif
-                                        @endif
-                                    </div>
+                                                        {{-- スタッフ割り当てボタン --}}
+                                                        @if ($shouldShowButton)
+                                                            {{-- 指名なしの場合 --}}
+                                                            @if ($staff->id == 0 || $staff->name == '指名なし')
+                                                                <button type="button"
+                                                                    onclick="openModal({{ $res->id }})"
+                                                                    class="mt-1 text-[8px] tracking-tighter text-red-500 font-bold border border-red-200 px-1 py-0.5 hover:bg-red-500 hover:text-white transition rounded-sm">
+                                                                    ASSIGN STAFF
+                                                                </button>
+                                                            @else
+                                                                {{-- すでに担当者が決まっている場合（変更用） --}}
+                                                                <button type="button"
+                                                                    onclick="openModal({{ $res->id }})"
+                                                                    class="mt-1 text-[8px] tracking-tighter text-gray-400 font-normal border border-gray-200 px-1 py-0.5 hover:bg-black hover:text-white transition rounded-sm">
+                                                                    CHANGE
+                                                                </button>
+                                                            @endif
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            @endif
+                                        </td>
                                     @endforeach
-                                    @endif
-                                </td>
-                                @endforeach
-                            </tr>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -222,23 +243,26 @@
                 <div class="mb-6">
                     <label class="block text-[10px] text-gray-400 uppercase mb-2 text-left">Select Stylist</label>
                     <select name="staff_id" class="w-full border-gray-200 focus:border-black focus:ring-0 text-sm">
-                        @foreach($staffs as $s)
-                        @if($s->name !== '指名なし')
-                        <option value="{{ $s->id }}">{{ $s->name }}</option>
-                        @endif
+                        @foreach ($staffs as $s)
+                            @if ($s->name !== '指名なし')
+                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
                 <div class="flex justify-end gap-4">
-                    <button type="button" onclick="closeModal()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition">Cancel</button>
-                    <button type="submit" class="bg-black text-white px-6 py-2 text-[10px] tracking-widest uppercase hover:bg-gray-800 transition">Update</button>
+                    <button type="button" onclick="closeModal()"
+                        class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition">Cancel</button>
+                    <button type="submit"
+                        class="bg-black text-white px-6 py-2 text-[10px] tracking-widest uppercase hover:bg-gray-800 transition">Update</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- モーダル：削除確認用 --}}
-    <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[110] flex items-center justify-center p-4">
+    <div id="deleteConfirmModal"
+        class="hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[110] flex items-center justify-center p-4">
         <div class="bg-white p-10 max-w-sm w-full shadow-2xl text-center border border-gray-100">
             <h4 class="text-sm font-light tracking-[0.2em] text-gray-800 mb-6 uppercase">Confirm Cancel</h4>
             <p class="text-[11px] text-gray-500 mb-10 leading-relaxed tracking-wider">
@@ -248,10 +272,12 @@
                 @csrf
                 @method('DELETE')
                 <div class="flex flex-col gap-3">
-                    <button type="submit" class="bg-black text-white py-3 text-[10px] tracking-[0.3em] uppercase hover:bg-gray-800 transition-all duration-300">
+                    <button type="submit"
+                        class="bg-black text-white py-3 text-[10px] tracking-[0.3em] uppercase hover:bg-gray-800 transition-all duration-300">
                         Cancel Reservation
                     </button>
-                    <button type="button" onclick="closeDeleteModal()" class="text-[10px] text-gray-400 uppercase tracking-[0.2em] hover:text-black py-2 transition-all duration-300">
+                    <button type="button" onclick="closeDeleteModal()"
+                        class="text-[10px] text-gray-400 uppercase tracking-[0.2em] hover:text-black py-2 transition-all duration-300">
                         Keep Booking
                     </button>
                 </div>
@@ -260,7 +286,8 @@
     </div>
 
     {{-- 電話予約登録用モーダル --}}
-    <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center">
+    <div id="createModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-light tracking-widest uppercase mb-6">New Reservation (Phone)</h3>
 
@@ -270,15 +297,17 @@
                 {{-- 日付（現在選択中の日付を初期化にする） --}}
                 <div class="mb-4">
                     <label class="block text-[10px] text-gray-400 uppercase mb-2">Date</label>
-                    <input type="date" name="reservation_date" value="{{ $selectedDate }}" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                    <input type="date" name="reservation_date" value="{{ $selectedDate }}"
+                        class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
                 </div>
 
                 {{-- 時間 --}}
                 <div class="mb-4">
                     <label class="block text-[10px] text-gray-400 uppercase mb-2">Time</label>
-                    <select name="reservation_time" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
-                        @foreach($timeSlots as $slot)
-                        <option value="{{ $slot }}">{{ $slot }}</option>
+                    <select name="reservation_time"
+                        class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                        @foreach ($timeSlots as $slot)
+                            <option value="{{ $slot }}">{{ $slot }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -287,11 +316,14 @@
                 <div class="mb-4">
                     <label class="block text-[10px] text-gray-400 uppercase mb-2">Menu (Multiple Select)</label>
                     <div class="border border-gray-200 p-3 h-40 overflow-y-auto bg-gray-50 rounded-sm">
-                        @foreach(\App\Models\Menu::all() as $menu)
-                        <label class="flex items-center space-x-3 mb-2 cursor-pointer hover:bg-white p-1 transition">
-                            <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="text-black focus:ring-black border-gray-300 rounded-sm">
-                            <span class="text-sm text-gray-700">{{ $menu->name }} <span class="text-xs text-gray-400">(¥{{ number_format($menu->price) }})</span></span>
-                        </label>
+                        @foreach (\App\Models\Menu::all() as $menu)
+                            <label
+                                class="flex items-center space-x-3 mb-2 cursor-pointer hover:bg-white p-1 transition">
+                                <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}"
+                                    class="text-black focus:ring-black border-gray-300 rounded-sm">
+                                <span class="text-sm text-gray-700">{{ $menu->name }} <span
+                                        class="text-xs text-gray-400">(¥{{ number_format($menu->price) }})</span></span>
+                            </label>
                         @endforeach
                     </div>
                 </div>
@@ -299,19 +331,22 @@
                 {{-- スタッフ --}}
                 <div class="mb-6">
                     <label class="block text-[10px] text-gray-400 uppercase mb-2">Staff</label>
-                    <select name="staff_id" class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
+                    <select name="staff_id"
+                        class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
                         <option value="0">指名なし (Any Staff)</option>
-                        @foreach($staffs as $s)
-                        @if($s->id !== 0)
-                        <option value="{{ $s->id }}">{{ $s->name }}</option>
-                        @endif
+                        @foreach ($staffs as $s)
+                            @if ($s->id !== 0)
+                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
 
                 <div class="flex justify-end gap-4">
-                    <button type="button" onclick="closeCreateModal()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition">Cancel</button>
-                    <button type="submit" class="bg-black text-white px-6 py-2 text-[10px] tracking-widest uppercase hover:bg-gray-800 transition">Create</button>
+                    <button type="button" onclick="closeCreateModal()"
+                        class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition">Cancel</button>
+                    <button type="submit"
+                        class="bg-black text-white px-6 py-2 text-[10px] tracking-widest uppercase hover:bg-gray-800 transition">Create</button>
                 </div>
             </form>
         </div>

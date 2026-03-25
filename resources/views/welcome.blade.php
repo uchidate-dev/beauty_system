@@ -13,22 +13,16 @@
     <nav class="fixed w-full z-50 flex justify-between items-center px-8 py-6 bg-white/80 backdrop-blur-sm">
         <div class="text-xl font-light tracking-[0.3em]">BEAUTY SALON</div>
         <div class="space-x-8 text-xs tracking-widest uppercase">
-            @if (Route::has('login'))
             @auth
-            <a href="{{ url('/dashboard') }}" class="hover:text-gray-400 transition">My Page</a>
+                <a href="{{ url('/dashboard') }}" class="hover:text-gray-400 transition">My Page</a>
             @else
-            <a href="{{ route('login') }}" class="hover:text-gray-400 transition">Login</a>
-            @if (Route::has('register'))
-            <a href="{{ route('register') }}" class="hover:text-gray-400 transition">Register</a>
-            @endif
+                <a href="{{ route('booking.gate') }}" class="hover:text-gray-400 transition">Reserve</a>
             @endauth
-            @endif
         </div>
     </nav>
 
     <div class="relative h-screen w-full flex items-center justify-center overflow-hidden bg-gray-900">
         <div class="absolute inset-0 opacity-60 bg-[url('/images/hero.png')] bg-cover bg-center"></div>
-
         <div class="absolute inset-0 bg-black/20"></div>
 
         <div class="relative text-center z-10 px-4">
@@ -39,36 +33,56 @@
                 あなただけの特別な美しさを。
             </p>
 
-            <a href="{{ route('booking.gate') }}" class="inline-block border border-white text-white px-12 py-4 text-xs tracking-[0.3em] hover:bg-white hover:text-gray-900 transition duration-500 uppercase backdrop-blur-sm">
+            <a href="{{ route('booking.gate') }}"
+                class="inline-block border border-white text-white px-12 py-4 text-xs tracking-[0.3em] hover:bg-white hover:text-gray-900 transition duration-500 uppercase backdrop-blur-sm">
                 Book Now / オンライン予約
             </a>
         </div>
     </div>
 
-    <section class="py-32 bg-white">
-        <div class="px-8 max-w-4xl mx-auto text-center">
+    <section class="py-40 bg-[#faf9f6]">
+        <div class="px-8 max-w-5xl mx-auto text-center">
 
-            <div class="w-[1px] h-16 bg-gray-200 mx-auto mb-12"></div>
+            <div class="w-[1px] h-20 bg-gray-300 mx-auto mb-16"></div>
 
-            <h2 class="text-3xl font-light tracking-[0.4em] text-gray-800 uppercase mb-2">
-                CONCEPT
-                <span class="text-[10px] tracking-[0.3em] text-gray-400 italic uppercase">
-                    Our Philosophy</span>
+            <h2 class="text-4xl font-light tracking-[0.4em] text-gray-800 uppercase mb-4">
+                Concept
             </h2>
+            <span class="block text-[10px] tracking-[0.3em] text-gray-500 italic uppercase mb-20">
+                Our Philosophy</span>
 
-            <div class="space-y-10 max-w-2xl mx-auto">
-                <p class="leading-[2.8] text-gray-600 font-light text-sm md:text-base tracking-widest">
+            <div class="space-y-12 max-w-3xl mx-auto">
+                <p class="leading-[3] text-gray-700 font-light text-sm md:text-base tracking-[0.15em]">
                     喧騒を忘れさせるプライベートな空間で、<br>
                     熟練のスタイリストが一人ひとりの骨格と毛流れを読み解き、<br>
                     あなた本来の美しさを引き出します。
                 </p>
 
-                <div class="pt-8">
-                    <span class="text-gray-300 text-xs">◆</span>
+                <div class="pt-10 flex justify-center text-gray-300">
+                    <span class="text-xs tracking-[0.5em] opacity-50">◆ &nbsp; ◆ &nbsp; ◆</span>
                 </div>
             </div>
+
         </div>
     </section>
+
+    <footer class="bg-gray-900 text-white py-20 flex flex-col items-center border-t border-gray-800">
+        <div class="text-center tracking-[0.2em] text-gray-400 uppercase">
+            <div class="text-xl font-light tracking-[0.4em] text-white italic mb-8">
+                BEAUTY SALON
+            </div>
+
+            <div class="space-y-3 text-[9px] sm:text-[10px]">
+                <p>Omotesando, Tokyo</p>
+                <p>Open 10:00 - 20:00 / Close Tue</p>
+            </div>
+
+            <div class="mt-16 text-[8px] opacity-60 space-y-2">
+                <p>&copy; 2026 Beauty Salon. All rights reserved.</p>
+                <p>Portfolio Project by Maiko</p>
+            </div>
+        </div>
+    </footer>
 </body>
 
 </html>

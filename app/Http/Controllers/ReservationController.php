@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class ReservationController extends Controller
@@ -20,7 +21,7 @@ class ReservationController extends Controller
         return view('reservations.index', compact('staffs', 'menus'));
     }
 
-    // 予約日時選択画面を表示するメソッド（既存の showDateTime を書き換え）
+    // 予約日時選択画面を表示するメソッド
     public function showDateTime(Request $request)
     {
         // 画面で選んだメニューとスタッフのIDを受け取る
@@ -155,104 +156,118 @@ class ReservationController extends Controller
 
         ]);
 
-        // 指名判定ロジック
-        // staff_id が "0"でなければ「true(指名あり)」
-        // staff_id が "0" なら「false (指名なし)」
-        $isNominated = $request->staff_id != 0;
+        try {
+            // トランザクション（この中の処理は「全て成功」か「全て無かったこと」になる）
+            return DB::transaction(function () use ($request) {
 
 
-        // 全体キャパシティ（その日の出勤スタッフ数）チェック
-        $dayOfWeek = date('w', strtotime($request->reservation_date));
-        $holidayMap = [
-            1 => [2, 3], // Hikaru
-            2 => [2, 1], // Yuki
-            3 => [2, 4], // Ken
-        ];
+                // 指名判定ロジック
+                // staff_id が "0"でなければ「true(指名あり)」
+                // staff_id が "0" なら「false (指名なし)」
+                $isNominated = $request->staff_id != 0;
 
-        // 今日出勤しているスタッフのIDリストを作成
-        $activeStaffIds = [];
-        foreach ([1, 2, 3] as $id) {
-            if (!in_array($dayOfWeek, $holidayMap[$id] ?? [])) {
-                $activeStaffIds[] = $id;
-            }
-        }
 
-        // お店の最大予約可能枠数（= 出勤スタッフ数）
-        $maxCapacity = count($activeStaffIds);
+                // 全体キャパシティ（その日の出勤スタッフ数）チェック
+                $dayOfWeek = date('w', strtotime($request->reservation_date));
+                $holidayMap = [
+                    1 => [2, 3], // Hikaru
+                    2 => [2, 1], // Yuki
+                    3 => [2, 4], // Ken
+                ];
 
-        // その時間の「現在の予約総数」をカウント（指名・指名なし合算）
-        $currentReservationsCount = Reservation::where('reservation_date', $request->reservation_date)
-            ->where('reservation_time', $request->reservation_time)
-            ->count();
+                // 今日出勤しているスタッフのIDリストを作成
+                $activeStaffIds = [];
+                foreach ([1, 2, 3] as $id) {
+                    if (!in_array($dayOfWeek, $holidayMap[$id] ?? [])) {
+                        $activeStaffIds[] = $id;
+                    }
+                }
 
-        // 満席チェック
-        if ($currentReservationsCount >= $maxCapacity) {
+                // お店の最大予約可能枠数（= 出勤スタッフ数）
+                $maxCapacity = count($activeStaffIds);
+
+                // その時間の「現在の予約総数」をカウント（指名・指名なし合算）
+                // この時間の予約数を数えるために他の人の予約をできないようにDBに鍵をかける
+                $currentReservationsCount = Reservation::where('reservation_date', $request->reservation_date)
+                    ->where('reservation_time', $request->reservation_time)
+                    ->lockForUpdate()
+                    ->count();
+
+                // 満席チェック
+                if ($currentReservationsCount >= $maxCapacity) {
+                    return redirect()->route('reservations.index')
+                        ->with('error', '申し訳ございません。この時間は満席です。');
+                }
+
+                // 指名ありの場合の個別チェック
+                $targetStaffId = $request->staff_id;
+
+                if ($targetStaffId != 0) {
+                    // 指名されたスタッフがすでに埋まっていないかチェック
+                    $isStaffBooked = Reservation::where('staff_id', $targetStaffId)
+                        ->where('reservation_date', $request->reservation_date)
+                        ->where('reservation_time', $request->reservation_time)
+                        ->lockForUpdate()
+                        ->exists();
+
+                    if ($isStaffBooked) {
+                        return redirect()->route('reservations.index')
+                            ->with('error', '申し訳ありません。ご指名のスタッフは既に予約が入っています。');
+                    }
+                }
+
+                // 保存処理
+                // 指名なし(0)ならNULLにする、指名ありならそのままIDを使う
+                $dbStaffId = ($targetStaffId == 0) ? null : $targetStaffId;
+
+                // 合計所要時間を計算
+                $selectedMenus = Menu::whereIn('id', $request->input('menu_ids', []))->get();
+                $totalDuration = $selectedMenus->sum('duration');
+
+                // コマ数を計算 (30分単位で切り上げ)
+                $frameCount = ceil($totalDuration / 30);
+
+                // ここで今の時間を固定
+                $now = now();
+
+                for ($i = 0; $i < $frameCount; $i++) {
+
+                    $reservation = new Reservation();
+                    $reservation->user_id = auth()->id();
+                    $reservation->staff_id = $dbStaffId;
+                    $reservation->reservation_date = $request->reservation_date;
+
+                    // 時間を30分ずつずらす
+                    $startTime = strtotime($request->reservation_time);
+                    $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
+
+                    $reservation->status = 'pending';
+
+                    // 指名フラグをセット
+                    $reservation->is_nominated = $isNominated;
+                    // 固定した時間を手動でセットする
+                    $reservation->created_at = $now;
+                    $reservation->updated_at = $now;
+
+                    $reservation->save();
+
+                    if ($i === 0) {
+
+                        // 2. 予約とメニューを紐付ける（多対多の場合）
+                        // ※中間テーブルがある前提です。もし単純な作りならここを調整します。
+                        $reservation->menus()->attach($request->menu_ids);
+                    }
+                }
+
+                // 3. 完了画面へリダイレクト
+                return redirect()->route('reservations.thanks')
+                    ->with('success', '予約が完了しました！');
+            });
+        } catch (\Exception $e) {
+            // トランザクション中にエラーが起きた場合（デッドロックなど）
             return redirect()->route('reservations.index')
-                ->with('error', '申し訳ございません。この時間は満席です。');
+                ->with('error', '予約処理中にエラーが発生しました。もう一度お試しください。');
         }
-
-        // 指名ありの場合の個別チェック
-        $targetStaffId = $request->staff_id;
-
-        if ($targetStaffId != 0) {
-            // 指名されたスタッフがすでに埋まっていないかチェック
-            $isStaffBooked = Reservation::where('staff_id', $targetStaffId)
-                ->where('reservation_date', $request->reservation_date)
-                ->where('reservation_time', $request->reservation_time)
-                ->exists();
-
-            if ($isStaffBooked) {
-                return redirect()->route('reservations.index')
-                    ->with('error', '申し訳ありません。ご指名のスタッフは既に予約が入っています。');
-            }
-        }
-
-        // 保存処理
-        // 指名なし(0)ならNULLにする、指名ありならそのままIDを使う
-        $dbStaffId = ($targetStaffId == 0) ? null : $targetStaffId;
-
-        // 合計所要時間を計算
-        $selectedMenus = Menu::whereIn('id', $request->menu_ids)->get();
-        $totalDuration = $selectedMenus->sum('duration');
-
-        // コマ数を計算 (30分単位で切り上げ)
-        $frameCount = ceil($totalDuration / 30);
-
-        // ここで今の時間を固定
-        $now = now();
-
-        for ($i = 0; $i < $frameCount; $i++) {
-
-            $reservation = new Reservation();
-            $reservation->user_id = auth()->id();
-            $reservation->staff_id = $dbStaffId;
-            $reservation->reservation_date = $request->reservation_date;
-
-            // 時間を30分ずつずらす
-            $startTime = strtotime($request->reservation_time);
-            $reservation->reservation_time = date('H:i', $startTime + ($i * 1800));
-
-            $reservation->status = 'pending';
-
-            // 指名フラグをセット
-            $reservation->is_nominated = $isNominated;
-            // 固定した時間を手動でセットする
-            $reservation->created_at = $now;
-            $reservation->updated_at = $now;
-
-            $reservation->save();
-
-            if ($i === 0) {
-
-                // 2. 予約とメニューを紐付ける（多対多の場合）
-                // ※中間テーブルがある前提です。もし単純な作りならここを調整します。
-                $reservation->menus()->attach($request->menu_ids);
-            }
-        }
-
-        // 3. 完了画面へリダイレクト
-        return redirect()->route('reservations.thanks')
-            ->with('success', '予約が完了しました！');
     }
 
     public function dashboard()
@@ -273,7 +288,6 @@ class ReservationController extends Controller
         $today = now()->format('Y-m-d');
 
         // 未来の予約： 「日付が明日以降」または「今日だけど、開始時間が今より後」
-
         $upcomingReservations = $all->filter(function ($res) use ($now) {
             $resDateTime = \Carbon\Carbon::parse($res->reservation_date . ' ' . $res->reservation_time);
             // 現在より未来ならtrue
@@ -296,6 +310,7 @@ class ReservationController extends Controller
         if ($reservation->user_id !== auth()->id()) {
             abort(403);
         }
+
         //  キャンセル期限のチェック(前日の23:59まで)
         $reservationDate = \Carbon\Carbon::parse($reservation->reservation_date);
         $deadline = $reservationDate->copy()->subDay()->endOfDay(); // 前日の23:59:59を計算
@@ -306,14 +321,18 @@ class ReservationController extends Controller
                 ->with('error', 'キャンセル期限（前日の23:59）を過ぎているため、キャンセルできません。お手数ですが店舗へ直接ご連絡ください。');
         }
 
-        // 予約の削除処理(期限内の場合のみここが実行される)
-        // 「同じ日、同じスタッフ、同じユーザー」で、
-        // 「メインの予約（自分）以降の時間」にある予約（ダミーコマ含む）をまとめて消す
-        Reservation::where('user_id', $reservation->user_id)
-            ->where('staff_id', $reservation->staff_id)
-            ->where('reservation_date', $reservation->reservation_date)
-            ->where('reservation_time', '>=', $reservation->reservation_time)
-            ->delete(); // メインもダミーも一気に削除
+        // ここもトランザクションで安全に消す
+        DB::transaction(function () use ($reservation) {
+            // 予約の削除処理(期限内の場合のみここが実行される)
+            // 「同じ日、同じスタッフ、同じユーザー」で、
+            // 「メインの予約（自分）以降の時間」にある予約（ダミーコマ含む）をまとめて消す
+            Reservation::where('user_id', $reservation->user_id)
+                ->where('staff_id', $reservation->staff_id)
+                ->where('reservation_date', $reservation->reservation_date)
+                ->where('reservation_time', '>=', $reservation->reservation_time)
+                ->delete(); // メインもダミーも一気に削除
+        });
+
 
         return redirect()->route('dashboard')->with('success', '予約をキャンセルしました。');
     }

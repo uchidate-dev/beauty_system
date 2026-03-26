@@ -264,11 +264,8 @@ class ReservationController extends Controller
                     ->with('success', '予約が完了しました！');
             });
         } catch (\Exception $e) {
-            //  エラーの正体を画面に強制表示させる魔法！
-            dd($e->getMessage());
-
-            // return redirect()->route('reservations.index')
-            //    ->with('error', '予約処理中にエラーが発生しました。もう一度お試しください。');
+            return redirect()->route('reservations.index')
+                ->with('error', '予約処理中にエラーが発生しました。もう一度お試しください。');
         }
     }
 

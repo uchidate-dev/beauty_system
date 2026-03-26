@@ -22,7 +22,8 @@
     </nav>
 
     <div class="relative h-screen w-full flex items-center justify-center overflow-hidden bg-gray-900">
-        <div class="absolute inset-0 opacity-60 bg-[url('/images/hero.png')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 opacity-60 bg-cover bg-center"
+            style="background-image: url('{{ asset('images/hero.png') }}');"></div>
         <div class="absolute inset-0 bg-black/20"></div>
 
         <div class="relative text-center z-10 px-4">
@@ -69,19 +70,17 @@
     <footer class="bg-gray-900 text-white py-20 flex flex-col items-center border-t border-gray-800">
         <div class="text-center tracking-[0.2em] text-gray-400 uppercase">
             <div class="text-xl font-light tracking-[0.4em] text-white italic mb-8">
-                BEAUTY SALON
-            </div>
 
-            <div class="space-y-3 text-[9px] sm:text-[10px]">
-                <p>Omotesando, Tokyo</p>
-                <p>Open 10:00 - 20:00 / Close Tue</p>
-            </div>
+                <div class="space-y-3 text-[9px] sm:text-[10px]">
+                    <p>Omotesando, Tokyo</p>
+                    <p>Open 10:00 - 20:00 / Close Tue</p>
+                </div>
 
-            <div class="mt-16 text-[8px] opacity-60 space-y-2">
-                <p>&copy; 2026 Beauty Salon. All rights reserved.</p>
-                <p>Portfolio Project by Maiko</p>
+                <div class="mt-16 text-[8px] opacity-60 space-y-2">
+                    <p>&copy; 2026 Beauty Salon. All rights reserved.</p>
+                    <p>Portfolio Project by Maiko</p>
+                </div>
             </div>
-        </div>
     </footer>
 </body>
 

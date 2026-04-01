@@ -58,9 +58,11 @@ class ReservationSeeder extends Seeder
             $this->createRes($dummies[7]->id, 3, $today, '14:00', $menuColor, true);
         }
 
-        //  指名なし（staff_id = null）は店舗の予約枠として常に入れる
-        $this->createRes($dummies[8]->id, null, $today, '14:00', $menuCut, false);
-        $this->createRes($dummies[9]->id, null, $today, '18:00', $menuColor, false);
+        //  指名なし 店がh開いている日（火曜以外）だけ、指名なし予約を入れる
+        if (!$this->isStoreClosed($today)) {
+            $this->createRes($dummies[8]->id, null, $today, '14:00', $menuCut, false);
+            $this->createRes($dummies[9]->id, null, $today, '18:00', $menuColor, false);
+        }
 
         // ==========================================
         //  【明日】の大繁盛タイムライン（明日が休みかどうかも判定）
@@ -75,15 +77,28 @@ class ReservationSeeder extends Seeder
         if (!$this->isHoliday(3, $tomorrow)) {
             $this->createRes($dummies[5]->id, 3, $tomorrow, '11:30', $menuCut, true);
         }
-        $this->createRes($dummies[7]->id, null, $tomorrow, '15:00', $menuColor, false);
+
+        // 明日が店休日じゃなければ、指名なし予約を入れる
+        if (!$this->isStoreClosed($tomorrow)) {
+            $this->createRes($dummies[7]->id, null, $tomorrow, '15:00', $menuColor, false);
+        }
     }
 
     /**
-     *  定休日を判定する賢いメソッド
+     * 店舗全体の定休日（火曜日）を判定するメソッド
+     */
+    private function isStoreClosed($date)
+    {
+        // date('w')は 0=日曜, 1=月曜, 2=火曜... を返す
+        return date('w', strtotime($date)) == 2;
+    }
+
+    /**
+     *  定休日を判定するメソッド
      */
     private function isHoliday($staffId, $date)
     {
-        if ($staffId === null) return false; // 指名なし枠は休み判定しない
+        if ($staffId === null) return false; // 指名なし枠は、店舗の定休日チェックに任せる
 
         $dayOfWeek = date('w', strtotime($date));
         $holidayMap = [

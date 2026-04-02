@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12 bg-[#faf9f6]">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             @if (session('success'))
                 <div id="success-message"
@@ -32,32 +32,38 @@
             @endif
 
             {{-- 日付選択エリア --}}
-            <div class="mb-8 flex items-center justify-between bg-white p-6 shadow-sm border-b border-gray-100">
-                <form action="{{ route('admin.dashboard') }}" method="GET" class="flex items-center gap-4">
+            <div
+                class="mb-8 flex flex-col md:flex-row md:items-center justify-between bg-white p-4 sm:p-6 shadow-sm border-b border-gray-100 gap-6">
+                <form action="{{ route('admin.dashboard') }}" method="GET"
+                    class="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
                     <input type="date" name="date" value="{{ $selectedDate }}"
-                        class="border-gray-200 focus:border-black focus:ring-0 text-sm py-2">
-                    <button type="submit"
-                        class="bg-black text-white px-8 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-800 transition duration-300">
-                        Search / 表示切替
-                    </button>
+                        class="border-gray-200 focus:border-black focus:ring-0 text-sm py-2 w-full sm:w-auto">
 
-                    {{-- 電話予約ボタン --}}
-                    <button type="button" onclick="openCreateModal()"
-                        class="bg-white text-black border border-black px-6 py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-100 transition duration-300">
-                        + Phone / 電話予約
-                    </button>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="submit"
+                            class="flex-1 sm:flex-none bg-black text-white px-4 sm:px-8 py-2.5 sm:py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-800 transition duration-300 whitespace-nowrap">
+                            Search
+                        </button>
+                        <button type="button" onclick="openCreateModal()"
+                            class="flex-1 sm:flex-none bg-white text-black border border-black px-4 sm:px-6 py-2.5 sm:py-2 text-[10px] tracking-[0.2em] uppercase hover:bg-gray-100 transition duration-300 whitespace-nowrap">
+                            + Phone
+                        </button>
+                    </div>
                 </form>
 
-                <div class="text-right flex items-end gap-8">
+                <div
+                    class="flex items-end justify-between md:justify-end gap-6 md:gap-8 w-full md:w-auto border-t border-gray-100 md:border-t-0 pt-4 md:pt-0">
                     <div>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Today's Revenue</p>
-                        <h3 class="text-lg font-medium tracking-tighter text-gray-800">
+                        <p class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-widest mb-1">Today's
+                            Revenue</p>
+                        <h3 class="text-base sm:text-lg font-medium tracking-tighter text-gray-800">
                             <span class="text-xs mr-1">¥</span>{{ number_format($todayTotal) }}
                         </h3>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Selected Date</p>
-                        <h3 class="text-lg font-light tracking-[0.1em] text-gray-800">
+                    <div class="text-right">
+                        <p class="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-widest mb-1">Selected Date
+                        </p>
+                        <h3 class="text-base sm:text-lg font-light tracking-[0.1em] text-gray-800">
                             {{ \Carbon\Carbon::parse($selectedDate)->format('Y.m.d') }}
                         </h3>
                     </div>
@@ -96,7 +102,7 @@
                     {{-- ここで横並びを指定 --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {{-- ① 月別売上グラフ --}}
-                        <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                        <div class="bg-white p-4 sm:p-6 shadow-sm border border-gray-100 rounded-lg">
                             <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
                                 Monthly Sales / {{ $currentYear }}年
                             </h4>
@@ -106,7 +112,7 @@
                         </div>
 
                         {{-- ② スタッフ別売上グラフ --}}
-                        <div class="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+                        <div class="bg-white p-4 sm:p-6 shadow-sm border border-gray-100 rounded-lg">
                             <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
                                 Staff Performance / スタッフ別指名売上
                             </h4>
@@ -125,11 +131,11 @@
                         <thead>
                             <tr class="bg-gray-50/50 border-b border-gray-100">
                                 <th
-                                    class="p-4 text-[10px] text-gray-400 w-24 font-medium uppercase tracking-widest border-r border-gray-100">
+                                    class="p-4 text-[10px] text-gray-400 w-24 font-medium uppercase tracking-widest border-r border-gray-100 whitespace-nowrap">
                                     Time</th>
                                 @foreach ($staffs as $staff)
                                     <th
-                                        class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase
+                                        class="p-4 text-[11px] tracking-[0.2em] font-medium border-r border-gray-100 uppercase whitespace-nowrap
                                     {{ $staff->id == 0 || $staff->name == '指名なし' ? 'text-red-400 bg-red-50/20 font-bold' : '' }}
                                     {{-- 休みの場合のデザイン(背景グレー＆文字薄く) --}}
                                     {{ $staff->is_holiday ? 'bg-gray-200 text-gray-400' : 'text-gray-600' }}">
@@ -147,7 +153,7 @@
                             @foreach ($timeSlots as $slot)
                                 <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
                                     <td
-                                        class="p-3 text-center text-[11px] text-gray-400 bg-gray-50/20 border-r border-gray-100">
+                                        class="p-3 text-center text-[11px] text-gray-400 bg-gray-50/20 border-r border-gray-100 whitespace-nowrap">
                                         {{ $slot }}
                                     </td>
 
@@ -234,7 +240,7 @@
 
     {{-- モーダル：アサイン用 --}}
     <div id="assignModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <div class="bg-white p-6 md:p-8 rounded-lg shadow-xl max-w-md w-full">
             <h3 class="text-lg font-light tracking-widest uppercase mb-4">Assign Staff</h3>
             <form id="assignForm" method="POST">
                 @csrf
@@ -263,7 +269,7 @@
     {{-- モーダル：削除確認用 --}}
     <div id="deleteConfirmModal"
         class="hidden fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[110] flex items-center justify-center p-4">
-        <div class="bg-white p-10 max-w-sm w-full shadow-2xl text-center border border-gray-100">
+        <div class="bg-white p-8 md:p-10 max-w-sm w-full shadow-2xl text-center border border-gray-100">
             <h4 class="text-sm font-light tracking-[0.2em] text-gray-800 mb-6 uppercase">Confirm Cancel</h4>
             <p class="text-[11px] text-gray-500 mb-10 leading-relaxed tracking-wider">
                 予約をキャンセルしてもよろしいですか？<br>この操作は取り消せません。

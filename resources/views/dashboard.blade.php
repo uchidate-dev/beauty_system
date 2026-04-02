@@ -34,12 +34,12 @@
                 </div>
 
                 <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
-                    <h3 class="text-lg font-light tracking-widest text-gray-800">RESERVATIONS / 予約一覧</h3>
+                    <h3 class="text-base sm:text-lg font-light tracking-widest text-gray-800">RESERVATIONS / 予約一覧</h3>
 
                     {{-- 予約がある場合のみ、右上の小さい新規予約ボタンを表示 --}}
                     @if (!$upcomingReservations->isEmpty())
                         <a href="{{ route('reservations.index') }}"
-                            class="text-[10px] border border-gray-800 px-4 py-2 hover:bg-gray-800 hover:text-white transition-all duration-300">
+                            class="text-[9px] sm:text-[10px] whitespace-nowrap shrink-0 border border-gray-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-800 hover:text-white transition-all duration-300">
                             NEW BOOKING / 新規予約
                         </a>
                     @endif
@@ -221,17 +221,22 @@
                     <h3 class="text-lg font-light tracking-widest text-gray-800">INFORMATION / お知らせ</h3>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-start gap-6 pb-4 border-b border-gray-50">
-                        <span class="text-[10px] text-gray-400 tracking-widest pt-1 shrink-0">2026.03.15</span>
-                        <p class="text-sm text-gray-600 font-light tracking-wider">春の新作トリートメント「サクラ・モイスチャー」を導入しました。</p>
+                    <div class="flex items-start gap-4 sm:gap-6 pb-4 border-b border-gray-50">
+                        <span
+                            class="text-[9px] sm:text-[10px] text-gray-400 tracking-widest pt-1 shrink-0 whitespace-nowrap">{{ now()->subWeeks(2)->format('Y.m.d') }}</span>
+                        <p class="text-xs sm:text-sm text-gray-600 font-light tracking-wider">
+                            季節の新作トリートメント「モイスチャー・ケア」を導入しました。</p>
                     </div>
-                    <div class="flex items-start gap-6 pb-4 border-b border-gray-50">
-                        <span class="text-[10px] text-gray-400 tracking-widest pt-1 shrink-0">2026.03.01</span>
-                        <p class="text-sm text-gray-600 font-light tracking-wider">スタイリストHikaruの4月のお休みについて</p>
+                    <div class="flex items-start gap-4 sm:gap-6 pb-4 border-b border-gray-50">
+                        <span
+                            class="text-[9px] sm:text-[10px] text-gray-400 tracking-widest pt-1 shrink-0 whitespace-nowrap">{{ now()->subMonth()->format('Y.m.d') }}</span>
+                        <p class="text-xs sm:text-sm text-gray-600 font-light tracking-wider">スタイリストの来月のお休みについて</p>
                     </div>
-                    <div class="flex items-start gap-6 pb-2">
-                        <span class="text-[10px] text-gray-400 tracking-widest pt-1 shrink-0">2026.02.20</span>
-                        <p class="text-sm text-gray-600 font-light tracking-wider">ご予約のキャンセルは、前日の23:59までマイページより可能です。</p>
+                    <div class="flex items-start gap-4 sm:gap-6 pb-2">
+                        <span
+                            class="text-[9px] sm:text-[10px] text-gray-400 tracking-widest pt-1 shrink-0 whitespace-nowrap">{{ now()->startOfYear()->format('Y.m.d') }}</span>
+                        <p class="text-xs sm:text-sm text-gray-600 font-light tracking-wider">
+                            ご予約のキャンセルは、前日の23:59までマイページより可能です。</p>
                     </div>
                 </div>
             </div>

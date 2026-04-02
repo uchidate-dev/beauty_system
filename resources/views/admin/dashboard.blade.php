@@ -341,7 +341,8 @@
                         class="w-full border-gray-200 text-sm focus:ring-black focus:border-black">
                         <option value="0">指名なし (Any Staff)</option>
                         @foreach ($staffs as $s)
-                            @if ($s->id !== 0)
+                            {{-- 「休みじゃない」スタッフだけ表示！ --}}
+                            @if ($s->id !== 0 && !$s->is_holiday)
                                 <option value="{{ $s->id }}">{{ $s->name }}</option>
                             @endif
                         @endforeach

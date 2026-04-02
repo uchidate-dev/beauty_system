@@ -19,106 +19,109 @@
                     </svg>
                     BACK TO MY PAGE
                 </a>
-            </div>
 
-            <form action="{{ route('reservations.datetime') }}" method="GET">
+                <form action="{{ route('reservations.datetime') }}" method="GET">
 
-                {{-- 01. Select Menu --}}
-                <h3 class="text-sm font-bold mb-6 tracking-widest text-gray-400 uppercase">01. Select Menu</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-                    @foreach ($menus as $menu)
-                        <label
-                            class="group relative bg-white border border-gray-200 p-6 cursor-pointer hover:border-black transition-all duration-300 has-[:checked]:border-black has-[:checked]:ring-1 has-[:checked]:ring-black shadow-sm">
-                            <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="hidden">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-lg font-medium text-gray-900">{{ $menu->name }}</p>
-                                    <p class="text-sm text-gray-400 mt-1">{{ $menu->duration }} min</p>
+                    {{-- 01. Select Menu --}}
+                    <h3 class="text-sm font-bold mb-6 tracking-widest text-gray-400 uppercase">01. Select Menu</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+                        @foreach ($menus as $menu)
+                            <label
+                                class="group relative bg-white border border-gray-200 p-6 cursor-pointer hover:border-black transition-all duration-300 has-[:checked]:border-black has-[:checked]:ring-1 has-[:checked]:ring-black shadow-sm">
+                                <input type="checkbox" name="menu_ids[]" value="{{ $menu->id }}" class="hidden">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-lg font-medium text-gray-900">{{ $menu->name }}</p>
+                                        <p class="text-sm text-gray-400 mt-1">{{ $menu->duration }} min</p>
+                                    </div>
+                                    <p class="text-sm font-semibold text-gray-900">¥{{ number_format($menu->price) }}
+                                    </p>
                                 </div>
-                                <p class="text-sm font-semibold text-gray-900">¥{{ number_format($menu->price) }}</p>
-                            </div>
-                        </label>
-                    @endforeach
-                </div>
+                            </label>
+                        @endforeach
+                    </div>
 
-                {{-- 02. Select Stylist --}}
-                <h3 class="text-sm font-bold mb-8 tracking-widest text-gray-400 uppercase">02. Select Stylist</h3>
+                    {{-- 02. Select Stylist --}}
+                    <h3 class="text-sm font-bold mb-8 tracking-widest text-gray-400 uppercase">02. Select Stylist</h3>
 
-                <div x-data="{ selectedStaff: null }" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-20">
+                    <div x-data="{ selectedStaff: null }" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-20">
 
-                    {{-- 1. ANY STAFF (指名なし) --}}
-                    <label class="group relative cursor-pointer text-center">
-                        <input type="radio" name="staff_id" value="0" x-model="selectedStaff" class="hidden peer"
-                            required>
-                        <div
-                            class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 transition-all duration-300 bg-black text-white flex items-center justify-center
+                        {{-- 1. ANY STAFF (指名なし) --}}
+                        <label class="group relative cursor-pointer text-center">
+                            <input type="radio" name="staff_id" value="0" x-model="selectedStaff"
+                                class="hidden peer" required>
+                            <div
+                                class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 overflow-hidden rounded-full border border-gray-100 transition-all duration-300 bg-black text-white flex items-center justify-center
             group-hover:ring-2 group-hover:ring-black group-hover:ring-offset-2
             peer-checked:bg-gray-700 peer-checked:ring-2 peer-checked:ring-black peer-checked:ring-offset-2 shadow-md">
-                            <span class="text-[9px] tracking-[0.2em] font-light">ANY STAFF</span>
-                        </div>
-                        <p class="text-sm md:text-base font-bold text-gray-900">指名なし</p>
-                        <p class="text-[10px] text-gray-400 mt-1 px-1 italic leading-tight">No designated stylist</p>
-                    </label>
+                                <span class="text-[9px] tracking-[0.2em] font-light">ANY STAFF</span>
+                            </div>
+                            <p class="text-sm md:text-base font-bold text-gray-900">指名なし</p>
+                            <p class="text-[10px] text-gray-400 mt-1 px-1 italic leading-tight">No designated stylist
+                            </p>
+                        </label>
 
-                    {{-- 2. メインスタイリスト (ID: 1, 2, 3) のループ --}}
-                    @foreach ($staffs as $staff)
-                        <label class="group relative cursor-pointer text-center block">
-                            <input type="radio" name="staff_id" value="{{ $staff->id }}" x-model="selectedStaff"
-                                class="hidden peer" required>
+                        {{-- 2. メインスタイリスト (ID: 1, 2, 3) のループ --}}
+                        @foreach ($staffs as $staff)
+                            <label class="group relative cursor-pointer text-center block">
+                                <input type="radio" name="staff_id" value="{{ $staff->id }}"
+                                    x-model="selectedStaff" class="hidden peer" required>
 
-                            <div
-                                class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full border border-gray-100 transition-all duration-700
+                                <div
+                                    class="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full border border-gray-100 transition-all duration-700
                     group-hover:ring-1 group-hover:ring-black group-hover:ring-offset-4
                     peer-checked:ring-1 peer-checked:ring-black peer-checked:ring-offset-4 peer-checked:shadow-sm overflow-hidden">
 
-                                <img src="{{ asset('images/staff' . $staff->id . '.png') }}" alt="{{ $staff->name }}"
-                                    :class="selectedStaff == '{{ $staff->id }}' ? 'grayscale-0' : 'grayscale'"
-                                    class="w-full h-full object-cover transition-all duration-1000 group-hover:grayscale-0">
-                            </div>
+                                    <img src="{{ asset('images/staff' . $staff->id . '.png') }}"
+                                        alt="{{ $staff->name }}"
+                                        :class="selectedStaff == '{{ $staff->id }}' ? 'grayscale-0' : 'grayscale'"
+                                        class="w-full h-full object-cover transition-all duration-1000 group-hover:grayscale-0">
+                                </div>
 
-                            <p
-                                class="text-sm md:text-base font-medium text-gray-400 tracking-[0.1em] transition-all duration-500
+                                <p
+                                    class="text-sm md:text-base font-medium text-gray-400 tracking-[0.1em] transition-all duration-500
                     group-hover:text-black
                     peer-checked:text-black peer-checked:tracking-[0.25em]">
-                                {{ $staff->name }}
-                            </p>
-
-                            <div class="w-0 h-[1px] bg-black mx-auto mt-2 transition-all duration-700 peer-checked:w-6">
-                            </div>
-
-                            <div class="mt-3 px-1 min-h-[80px]">
-                                <p
-                                    class="text-[10px] leading-relaxed text-gray-400 font-light italic transition-all duration-500
-                        group-hover:text-gray-600 peer-checked:text-gray-800">
-                                    @if ($staff->id == 1)
-                                        <span
-                                            class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Owner
-                                            / Director</span>
-                                        一人ひとりの骨格に寄り添う、唯一無二のシルエットを。
-                                    @elseif($staff->id == 2)
-                                        <span
-                                            class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Color
-                                            Specialist</span>
-                                        透明感と柔らかな質感。光に溶け込むカラーをご提供します。
-                                    @elseif($staff->id == 3)
-                                        <span
-                                            class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Men's
-                                            Expert</span>
-                                        洗練されたエッジ。日常を格上げするメンズスタイルを再現します。
-                                    @endif
+                                    {{ $staff->name }}
                                 </p>
-                            </div>
-                        </label>
-                    @endforeach
-                </div>
 
-                <div class="text-center mt-12 pb-20 border-t border-gray-100 pt-12">
-                    <button type="submit"
-                        class="bg-black text-white text-[10px] tracking-[0.3em] px-16 py-5 uppercase hover:bg-gray-800 transition-all duration-300 shadow-xl">
-                        SELECT DATE & TIME / 日時選択
-                    </button>
-                </div>
-            </form>
+                                <div
+                                    class="w-0 h-[1px] bg-black mx-auto mt-2 transition-all duration-700 peer-checked:w-6">
+                                </div>
+
+                                <div class="mt-3 px-1 min-h-[80px]">
+                                    <p
+                                        class="text-[10px] leading-relaxed text-gray-400 font-light italic transition-all duration-500
+                        group-hover:text-gray-600 peer-checked:text-gray-800">
+                                        @if ($staff->id == 1)
+                                            <span
+                                                class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Owner
+                                                / Director</span>
+                                            一人ひとりの骨格に寄り添う、唯一無二のシルエットを。
+                                        @elseif($staff->id == 2)
+                                            <span
+                                                class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Color
+                                                Specialist</span>
+                                            透明感と柔らかな質感。光に溶け込むカラーをご提供します。
+                                        @elseif($staff->id == 3)
+                                            <span
+                                                class="block text-gray-300 font-bold uppercase tracking-widest text-[7px] mb-1 not-italic group-hover:text-gray-400 peer-checked:text-gray-500">Men's
+                                                Expert</span>
+                                            洗練されたエッジ。日常を格上げするメンズスタイルを再現します。
+                                        @endif
+                                    </p>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="text-center mt-12 pb-20 border-t border-gray-100 pt-12">
+                        <button type="submit"
+                            class="bg-black text-white text-[10px] tracking-[0.3em] px-16 py-5 uppercase hover:bg-gray-800 transition-all duration-300 shadow-xl">
+                            SELECT DATE & TIME / 日時選択
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
 </x-app-layout>
